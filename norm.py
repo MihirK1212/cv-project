@@ -13,6 +13,11 @@ class LayerNorm2d(torch.nn.Module):
 
     def forward(self, x):
         x.to(device)
-        mean = x.mean(dim=(1, 2, 3), keepdim=True).to(device)
-        std = x.std(dim=(1, 2, 3), keepdim=True).to(device)
+        mean = x.mean(dim=(1, 2, 3), keepdim=True)
+        std = x.std(dim=(1, 2, 3), keepdim=True)
+
+        x.to(device)
+        mean.to(device)
+        std.to(device)
+        
         return self.gamma * (x - mean) / (std + self.eps) + self.beta
