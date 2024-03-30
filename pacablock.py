@@ -34,6 +34,9 @@ class PaCaAttention(torch.nn.Module):
         c = torch.transpose(c, 1, 2)
         c = c.softmax(dim=-1)
 
+        x.to(device)
+        c.to(device)
+
         z = torch.einsum("bmn,bnc->bmc", c, x)
 
         x = rearrange(x, "B N C -> N B C")
