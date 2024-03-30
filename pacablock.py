@@ -34,6 +34,9 @@ class PaCaAttention(torch.nn.Module):
         c = torch.transpose(c, 1, 2)
         c = c.softmax(dim=-1)
 
+        print('x device:', x.get_device())
+        print('c device:', c.get_device())
+
         x.to(device)
         c.to(device)
 
