@@ -1,11 +1,10 @@
 import torch
 from einops import rearrange
 
-# import utils
-# from norm import LayerNorm2d
+import utils
+from norm import LayerNorm2d
+from clustering import Clustering
 
-def is_training():
-    return False
 
 def trunc_normal(tensor, mean=0., std=1.):
     size = tensor.shape
@@ -39,24 +38,6 @@ class LayerNorm2d(torch.nn.Module):
         mean = x.mean(dim=(1, 2, 3), keepdim=True)
         std = x.std(dim=(1, 2, 3), keepdim=True)
         return self.gamma * (x - mean) / (std + self.eps) + self.beta
-
-class Clustering(torch.nn.Module):
-    def __init__(
-        self,
-        num_clusters=100
-    ):
-        super(Clustering, self).__init__()
-        self.num_clusters = num_clusters   
-    
-    def generate_one_hot_tensor(self, batch_size, N, M):
-        tensor = torch.zeros(batch_size, N, M)
-        indices = torch.randint(0, M, (batch_size, N))
-        tensor.scatter_(2, indices.unsqueeze(2), 1)
-        return tensor
-
-    def forward(self, x):
-        num_tokens =  x.shape[1]
-        return self.generate_one_hot_tensor(x.shape[0], num_tokens, self.num_clusters)
 
 class PaCaAttention(torch.nn.Module):
     def __init__(
@@ -210,9 +191,9 @@ class PaCaBlock(torch.nn.Module):
 
         return x
 
-x = torch.rand(17, 96, 56, 56)
+# x = torch.rand(17, 96, 56, 56)
 
-pct = PaCaBlock(embed_dim=x.shape[1], num_heads=8, input_img_shape=(x.shape[2], x.shape[3]), with_pos_embed=True)
-output = pct(x)
+# pct = PaCaBlock(embed_dim=x.shape[1], num_heads=8, input_img_shape=(x.shape[2], x.shape[3]), with_pos_embed=True)
+# output = pct(x)
 
-print(output.shape)
+# print(output.shape)
