@@ -38,14 +38,14 @@ class KMeansClustering(torch.nn.Module):
         
     def forward(self, x):
         batch_size, num_tokens, _ = x.shape
-        
+
         if self.cluster_centers is None:
-            kmeans = KMeans(n_clusters=self.num_clusters)
+            kmeans = KMeans(n_clusters=self.num_clusters, n_init='auto')
         else:
             kmeans = KMeans(n_clusters=self.num_clusters, init=self.cluster_centers, n_init=1)
         
         cluster_assignments = kmeans.fit_predict(x.reshape(batch_size * num_tokens, -1).detach().cpu().numpy())
-        self.cluster_centers = torch.tensor(kmeans.cluster_centers_).view(1, 1, -1).detach().cpu().numpy()
+        self.cluster_centers = torch.tensor(kmeans.cluster_centers_).detach().cpu().numpy()
         
         tensor = torch.zeros(batch_size * num_tokens, self.num_clusters)
         for i in range(batch_size * num_tokens):
