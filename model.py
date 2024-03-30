@@ -10,7 +10,7 @@ class PaCaVIT(torch.nn.Module):
     def __init__(
         self,
         img_size = 224,
-        num_blocks = 4,
+        num_blocks = 3,
         embed_dims=[96, 192, 384],
         depths=[2, 2, 2],
     ):
