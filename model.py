@@ -3,6 +3,7 @@ import torch
 import downsample
 from pacablock import PaCaBlock
 from downsample import LayerNorm2d
+from clustering import get_clustering_model
 
 class PaCaVIT(torch.nn.Module):
     def __init__(
@@ -18,41 +19,50 @@ class PaCaVIT(torch.nn.Module):
         self.embed_dims = embed_dims
         self.depths = depths
         
-        for layer_num in range(self.num_blocks):
+        for block_num in range(self.num_blocks):
 
             downsample_layer = downsample.get_downsample_layer(
-                layer_num, 
-                in_channels=(3 if layer_num==0 else embed_dims[layer_num-1]),
-                out_channels=embed_dims[layer_num]
+                block_num, 
+                in_channels=(3 if block_num==0 else embed_dims[block_num-1]),
+                out_channels=embed_dims[block_num]
             )
-            setattr(self, f'downsample_{layer_num}', downsample_layer)
+            setattr(self, f'downsample_{block_num}', downsample_layer)
 
-            for depth_num in range(self.depths[layer_num]): 
+            
+            for depth_num in range(self.depths[block_num]): 
+
+                clustering_model = get_clustering_model()
+                setattr(self, f'clustering_{block_num}_{depth_num}', clustering_model)
+
                 paca_block = PaCaBlock(
-                    embed_dim=embed_dims[layer_num],
+                    embed_dim=embed_dims[block_num],
                     num_heads=8,
-                    input_img_shape=(img_size//(4 * 2**layer_num), img_size//(4 * 2**layer_num)),
+                    input_img_shape=(img_size//(4 * 2**block_num), img_size//(4 * 2**block_num)),
                     with_pos_embed=(depth_num == 0)
                 )
-                setattr(self, f'pacablock_{layer_num}_{depth_num}', paca_block)
+                setattr(self, f'pacablock_{block_num}_{depth_num}', paca_block)
 
-            layer_norm = LayerNorm2d(embed_dims[layer_num])
-            setattr(self, f'layer_norm_{layer_num}', layer_norm)
+            layer_norm = LayerNorm2d(embed_dims[block_num])
+            setattr(self, f'layer_norm_{block_num}', layer_norm)
 
     def forward(self, x):
-        
-        for layer_num in range(self.num_blocks):
 
-            stage = f'downsample_{layer_num}'
+        for block_num in range(self.num_blocks):
+
+            stage = f'downsample_{block_num}'
             downsample_layer = getattr(self, stage)
             x = downsample_layer(x) 
 
-            for depth_num in range(self.depths[layer_num]):
-                stage = f'pacablock_{layer_num}_{depth_num}'
-                paca_block = getattr(self, stage)
-                x = paca_block(x)
+            for depth_num in range(self.depths[block_num]):
 
-            stage = f'layer_norm_{layer_num}'
+                stage = f'clustering_{block_num}_{depth_num}'
+                clustering_model = getattr(self, stage)
+
+                stage = f'pacablock_{block_num}_{depth_num}'
+                paca_block = getattr(self, stage)
+                x = paca_block(x, clustering_model)
+
+            stage = f'layer_norm_{block_num}'
             layer_norm = getattr(self, stage)
             x = layer_norm(x)
 

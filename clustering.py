@@ -107,4 +107,7 @@ class MLPClustering(torch.nn.Module):
 
         cluster_probs = x.view(batch_size, num_tokens, self.num_clusters)
 
-        return cluster_probs
+        return cluster_probs 
+    
+def get_clustering_model():
+    return Clustering()

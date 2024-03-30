@@ -3,8 +3,6 @@ from einops import rearrange
 
 import utils
 from norm import LayerNorm2d
-from clustering import Clustering
-
 
 class PaCaAttention(torch.nn.Module):
     def __init__(
@@ -14,8 +12,6 @@ class PaCaAttention(torch.nn.Module):
         num_heads,
     ):
         super(PaCaAttention, self).__init__()
-
-        self.clustering = Clustering()
 
         self.num_heads = num_heads
         self.attn_drop = 0.0
@@ -28,11 +24,11 @@ class PaCaAttention(torch.nn.Module):
 
         self.proj = torch.nn.Linear(embed_dim, embed_dim)
 
-    def forward(self, x, height, width):
+    def forward(self, x, height, width, clustering_model):
 
         x = utils.reshape_channel_last(x)
         
-        c = self.clustering(x)
+        c = clustering_model(x)
         c = torch.transpose(c, 1, 2)
         c = c.softmax(dim=-1)
 
@@ -135,7 +131,7 @@ class PaCaBlock(torch.nn.Module):
         self.ffn = FFN(in_features=self.embed_dim)
         self.layer_norm_3 = LayerNorm2d(self.embed_dim)
 
-    def forward(self, x):
+    def forward(self, x, clustering_model):
 
         skip_connection_1 = x 
 
@@ -145,7 +141,7 @@ class PaCaBlock(torch.nn.Module):
 
         x = self.layer_norm_1(x)
 
-        x = self.paca_attn(x, self.input_img_shape[0], self.input_img_shape[1])
+        x = self.paca_attn(x, self.input_img_shape[0], self.input_img_shape[1], clustering_model)
         
         x = x + skip_connection_1
 
