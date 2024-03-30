@@ -28,17 +28,20 @@ class PaCaAttention(torch.nn.Module):
 
     def forward(self, x, height, width, clustering_model):
 
-        x = utils.reshape_channel_last(x)
+        x = utils.reshape_channel_last(x).to(device)
         
         c = clustering_model(x).to(device)
         c = torch.transpose(c, 1, 2)
-        c = c.softmax(dim=-1)
+        c = c.softmax(dim=-1).to(device)
 
-        print('x device:', x.get_device())
-        print('c device:', c.get_device())
+        print('x device before:', x.get_device())
+        print('c device before:', c.get_device())
 
         x.to(device)
         c.to(device)
+
+        print('x device after:', x.get_device())
+        print('c device after:', c.get_device())
 
         z = torch.einsum("bmn,bnc->bmc", c, x)
 
