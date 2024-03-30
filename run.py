@@ -8,8 +8,12 @@ from model import PaCaVIT
 
 device = utils.get_device()
 
-x = torch.rand(config.BATCH_SIZE, 3, config.IMG_SIZE, config.IMG_SIZE)
-model = PaCaVIT()
+x = torch.rand(config.BATCH_SIZE, 3, config.IMG_SIZE, config.IMG_SIZE).to(device)
+model = PaCaVIT().to(device)
+
+x.to(device)
+model.to(device)
+
 output = model(x)
 print(output['pred_logits'].shape)
 
