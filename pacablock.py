@@ -138,7 +138,7 @@ class PaCaBlock(torch.nn.Module):
         skip_connection_1 = x 
 
         if self.with_pos_embed:
-            x = self.pos_drop(utils.reshape_channel_last(x).to(device) + self.pos_embed)
+            x = self.pos_drop(utils.reshape_channel_last(x).to(device) + self.pos_embed.to(device))
             x = utils.reshape_channel_first(x, self.input_img_shape[0], self.input_img_shape[1]).to(device)
 
         x = self.layer_norm_1(x)
