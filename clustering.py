@@ -24,7 +24,7 @@ class Clustering(torch.nn.Module):
     
     def forward(self, x):
         num_tokens =  x.shape[1]
-        return self.generate_one_hot_tensor(x.shape[0], num_tokens, self.num_clusters).to(device)
+        return self.generate_one_hot_tensor(x.shape[0], num_tokens, self.num_clusters).clone().to(device)
 
 class KMeansClustering(torch.nn.Module):
     def __init__(

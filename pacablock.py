@@ -4,6 +4,8 @@ from einops import rearrange
 import utils
 from norm import LayerNorm2d
 
+device = utils.get_device()
+
 class PaCaAttention(torch.nn.Module):
     def __init__(
         self,
@@ -28,7 +30,7 @@ class PaCaAttention(torch.nn.Module):
 
         x = utils.reshape_channel_last(x)
         
-        c = clustering_model(x)
+        c = clustering_model(x).to(device)
         c = torch.transpose(c, 1, 2)
         c = c.softmax(dim=-1)
 
