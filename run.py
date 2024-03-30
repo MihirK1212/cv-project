@@ -11,7 +11,6 @@ device = utils.get_device()
 x = torch.rand(config.BATCH_SIZE, 3, config.IMG_SIZE, config.IMG_SIZE)
 model = PaCaVIT()
 output = model(x)
-print(output)
 print(output['pred_logits'].shape)
 
 def train(
