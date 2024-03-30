@@ -88,8 +88,6 @@ class PaCaVIT(torch.nn.Module):
             stage = f'layer_norm_{block_num}'
             layer_norm = getattr(self, stage)
             x = layer_norm(x)
-
-        # return {"pred_logits": x}
         
         b, c, h, w = x.size()
         pooler = x.reshape(b, c * h * w)

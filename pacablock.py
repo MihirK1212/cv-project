@@ -28,7 +28,7 @@ class PaCaAttention(torch.nn.Module):
 
     def forward(self, x, height, width, clustering_model):
 
-        x = utils.reshape_channel_last(x).to(device)
+        x = utils.reshape_channel_last(x)
         
         c = clustering_model(x)
         c = torch.transpose(c, 1, 2)
@@ -36,15 +36,14 @@ class PaCaAttention(torch.nn.Module):
 
         z = torch.einsum("bmn,bnc->bmc", c, x)
 
-        x = rearrange(x, "B N C -> N B C").to(device)
-        z = rearrange(z, "B M C -> M B C").to(device)
+        x = rearrange(x, "B N C -> N B C")
+        z = rearrange(z, "B M C -> M B C")
 
-        x, attn = self.multihead_attn(x.to(device), z.to(device), z.to(device))
-        x = x.to(device)
+        x, attn = self.multihead_attn(x, z, z)
         
-        x = rearrange(x, "N B C -> B N C").to(device)
+        x = rearrange(x, "N B C -> B N C")
 
-        x = utils.reshape_channel_first(x, height, width).to(device)
+        x = utils.reshape_channel_first(x, height, width)
 
         return x
 
@@ -84,17 +83,17 @@ class FFN(torch.nn.Module):
 
     def forward(self, x, height, width):
 
-        x = utils.reshape_channel_last(x).to(device)
+        x = utils.reshape_channel_last(x)
         x = self.fc1(x)
-        x = utils.reshape_channel_first(x, height, width).to(device)
+        x = utils.reshape_channel_first(x, height, width)
 
         x = self.dwconv(x)
         x = self.act(x)
         x = self.drop(x)
 
-        x = utils.reshape_channel_last(x).to(device)
+        x = utils.reshape_channel_last(x)
         x = self.fc2(x)
-        x = utils.reshape_channel_first(x, height, width).to(device)
+        x = utils.reshape_channel_first(x, height, width)
         
         x = self.drop(x)
         return x
@@ -122,7 +121,7 @@ class PaCaBlock(torch.nn.Module):
                 torch.zeros(1, self.input_img_shape[0] * self.input_img_shape[1], self.embed_dim)
             )
             self.pos_drop = torch.nn.Dropout(p=drop)
-            # utils.trunc_normal(self.pos_embed, std=0.02)
+            utils.trunc_normal(self.pos_embed, std=0.02)
 
         self.layer_norm_1 = LayerNorm2d(self.embed_dim)
 
@@ -139,8 +138,8 @@ class PaCaBlock(torch.nn.Module):
         skip_connection_1 = x 
 
         if self.with_pos_embed:
-            x = self.pos_drop(utils.reshape_channel_last(x).to(device) + self.pos_embed.to(device))
-            x = utils.reshape_channel_first(x, self.input_img_shape[0], self.input_img_shape[1]).to(device)
+            x = self.pos_drop(utils.reshape_channel_last(x) + self.pos_embed)
+            x = utils.reshape_channel_first(x, self.input_img_shape[0], self.input_img_shape[1])
 
         x = self.layer_norm_1(x)
 
