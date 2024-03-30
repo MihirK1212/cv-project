@@ -42,7 +42,7 @@ class KMeansClustering(torch.nn.Module):
         if self.cluster_centers is None:
             kmeans = KMeans(n_clusters=self.num_clusters)
         else:
-            kmeans = KMeans(n_clusters=self.num_clusters, init=self.cluster_centers, n_init='auto')
+            kmeans = KMeans(n_clusters=self.num_clusters, init=self.cluster_centers, n_init=1)
         
         cluster_assignments = kmeans.fit_predict(x.reshape(batch_size * num_tokens, -1).detach().cpu().numpy())
         self.cluster_centers = torch.tensor(kmeans.cluster_centers_).view(1, 1, -1).detach().cpu().numpy()
