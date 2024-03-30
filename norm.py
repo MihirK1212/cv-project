@@ -12,12 +12,6 @@ class LayerNorm2d(torch.nn.Module):
         self.eps = torch.tensor(eps)
 
     def forward(self, x):
-        x.to(device)
         mean = x.mean(dim=(1, 2, 3), keepdim=True)
         std = x.std(dim=(1, 2, 3), keepdim=True)
-
-        x.to(device)
-        mean.to(device)
-        std.to(device)
-
         return self.gamma.to(device) * (x.to(device) - mean.to(device)) / (std.to(device) + self.eps.to(device)) + self.beta.to(device)

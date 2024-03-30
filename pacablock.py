@@ -39,7 +39,8 @@ class PaCaAttention(torch.nn.Module):
         x = rearrange(x, "B N C -> N B C").to(device)
         z = rearrange(z, "B M C -> M B C").to(device)
 
-        x, attn = self.multihead_attn(x, z, z)
+        x, attn = self.multihead_attn(x.to(device), z.to(device), z.to(device))
+        x = x.to(device)
         
         x = rearrange(x, "N B C -> B N C").to(device)
 
