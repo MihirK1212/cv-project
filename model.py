@@ -46,6 +46,10 @@ class PaCaVIT(torch.nn.Module):
             layer_norm = LayerNorm2d(embed_dims[block_num])
             setattr(self, f'layer_norm_{block_num}', layer_norm)
 
+        final_img_shape = img_size//(4 * 2**(self.num_blocks-1))
+        final_dense_dim = self.embed_dims[-1]*final_img_shape*final_img_shape
+        print('FINAL DENSE DIM:', final_dense_dim)
+
     def forward(self, x):
 
         for block_num in range(self.num_blocks):
