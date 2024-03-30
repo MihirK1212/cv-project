@@ -112,4 +112,4 @@ class MLPClustering(torch.nn.Module):
         return cluster_probs 
     
 def get_clustering_model():
-    return Clustering()
+    return KMeansClustering()
