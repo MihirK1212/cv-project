@@ -35,7 +35,7 @@ def train(
 
         outputs = model(inputs)
 
-        loss = loss_function(outputs, targets)
+        loss = loss_function(outputs['pred_logits'], targets)
         _, predictions = torch.max(outputs["pred_logits"], dim=1)
 
         num_tr_steps += 1
@@ -82,7 +82,7 @@ def valid(
 
         outputs = model(inputs)
 
-        loss = loss_function(outputs, targets)
+        loss = loss_function(outputs['pred_logits'], targets)
         _, predictions = torch.max(outputs["pred_logits"], dim=1)
 
         num_tr_steps += 1
