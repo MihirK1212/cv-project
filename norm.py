@@ -19,5 +19,5 @@ class LayerNorm2d(torch.nn.Module):
         x.to(device)
         mean.to(device)
         std.to(device)
-        
-        return self.gamma * (x - mean) / (std + self.eps) + self.beta
+
+        return self.gamma * (x - mean) / (std + self.eps.to(device)) + self.beta
