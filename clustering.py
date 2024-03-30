@@ -6,6 +6,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+device = utils.get_device()
+
 class Clustering(torch.nn.Module):
     def __init__(
         self,
@@ -22,7 +24,7 @@ class Clustering(torch.nn.Module):
     
     def forward(self, x):
         num_tokens =  x.shape[1]
-        return self.generate_one_hot_tensor(x.shape[0], num_tokens, self.num_clusters)
+        return self.generate_one_hot_tensor(x.shape[0], num_tokens, self.num_clusters).to(device)
 
 class KMeansClustering(torch.nn.Module):
     def __init__(
@@ -42,14 +44,14 @@ class KMeansClustering(torch.nn.Module):
             kmeans = KMeans(n_clusters=self.num_clusters, init=self.cluster_centers, n_init=1)
         
         cluster_assignments = kmeans.fit_predict(x.reshape(batch_size * num_tokens, -1).detach().cpu().numpy())
-        self.cluster_centers = torch.tensor(kmeans.cluster_centers_).view(1, 1, -1).clone().to(utils.get_device())
+        self.cluster_centers = torch.tensor(kmeans.cluster_centers_).view(1, 1, -1).clone().to(device)
         
         tensor = torch.zeros(batch_size * num_tokens, self.num_clusters)
         for i in range(batch_size * num_tokens):
             tensor[i, cluster_assignments[i]] = 1
         
         tensor = tensor.reshape(batch_size, num_tokens, self.num_clusters)
-        cluster_tensor = tensor.clone().to(utils.get_device())
+        cluster_tensor = tensor.clone().to(device)
         
         return cluster_tensor
 
