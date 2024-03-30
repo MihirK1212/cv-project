@@ -25,15 +25,17 @@ def trunc_normal(tensor, mean=0., std=1.):
     return tensor
 
 def reshape_channel_first(x, height, width):
+    device = get_device()
     x = rearrange(x, 'b (h w) c -> b c h w', h=height, w=height)
-    return x
+    return x.to(device)
 
 def reshape_channel_last(x):
+    device = get_device()
     x = rearrange(x, 'b c h w -> b (h w) c')
-    return x
+    return x.to(device)
 
 def get_metrics(targets, predictions):
-    
+
     accuracy = accuracy_score(targets, predictions)
     print("Accuracy:", accuracy)
 
