@@ -9,7 +9,7 @@ class LayerNorm2d(torch.nn.Module):
         super(LayerNorm2d, self).__init__()
         self.gamma = torch.nn.Parameter(torch.ones(1, features, 1, 1))
         self.beta = torch.nn.Parameter(torch.zeros(1, features, 1, 1))
-        self.eps = eps
+        self.eps = torch.tensor(eps)
 
     def forward(self, x):
         x.to(device)
