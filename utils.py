@@ -22,7 +22,7 @@ def trunc_normal(tensor, mean=0., std=1.):
         normal_tensor = torch.clamp(normal_tensor, lower, upper)
         normal_tensor = normal_tensor * std / normal_tensor.std()
         tensor.copy_(normal_tensor)
-    return tensor
+    return tensor.to(get_device())
 
 def reshape_channel_first(x, height, width):
     device = get_device()

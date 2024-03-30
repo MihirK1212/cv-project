@@ -42,6 +42,7 @@ def helper():
     paca_vit_model, loss_function, optimizer, scheduler = model.get_model()
     paca_vit_model.to(device)
 
+
     return (
         paca_vit_model,
         training_loader,
