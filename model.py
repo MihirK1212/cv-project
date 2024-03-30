@@ -4,14 +4,15 @@ import downsample
 from pacablock import PaCaBlock
 from downsample import LayerNorm2d
 from clustering import get_clustering_model
+import config
 
 class PaCaVIT(torch.nn.Module):
     def __init__(
         self,
         img_size = 224,
         num_blocks = 4,
-        embed_dims=[96, 192, 320, 384],
-        depths=[2, 2, 4, 2],
+        embed_dims=[96, 192, 384],
+        depths=[2, 2, 2],
     ):
         super(PaCaVIT, self).__init__()
 
@@ -36,7 +37,7 @@ class PaCaVIT(torch.nn.Module):
 
                 paca_block = PaCaBlock(
                     embed_dim=embed_dims[block_num],
-                    num_heads=8,
+                    num_heads=4,
                     input_img_shape=(img_size//(4 * 2**block_num), img_size//(4 * 2**block_num)),
                     with_pos_embed=(depth_num == 0)
                 )
@@ -67,3 +68,18 @@ class PaCaVIT(torch.nn.Module):
             x = layer_norm(x)
 
         return x
+    
+def get_model():
+    model = PaCaVIT()
+    loss_function = torch.nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(
+        params=model.parameters(),
+        lr=config.LEARNING_RATE,
+        weight_decay=config.WEIGHT_DECAY,
+        betas=(0.9, 0.98),
+        eps=1e-9,
+    )
+    scheduler = torch.optim.lr_scheduler.StepLR(
+        optimizer, step_size=5, gamma=config.LR_SCHEDULER_GAMMA
+    )
+    return model, loss_function, optimizer, scheduler
