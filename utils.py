@@ -1,6 +1,9 @@
 import torch
 from einops import rearrange
 
+def get_device():
+    return "cuda" if torch.cuda.is_available() else "cpu"
+
 def trunc_normal(tensor, mean=0., std=1.):
     size = tensor.shape
     numel = tensor.numel()

@@ -41,7 +41,7 @@ class KMeansClustering(torch.nn.Module):
         else:
             kmeans = KMeans(n_clusters=self.num_clusters, init=self.cluster_centers, n_init=1)
         
-        cluster_assignments = kmeans.fit_predict(x.reshape(batch_size * num_tokens, -1).cpu().numpy())
+        cluster_assignments = kmeans.fit_predict(x.reshape(batch_size * num_tokens, -1).detach().cpu().numpy())
         
         tensor = torch.zeros(batch_size * num_tokens, self.num_clusters)
         for i in range(batch_size * num_tokens):
