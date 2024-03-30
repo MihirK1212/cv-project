@@ -92,7 +92,7 @@ class PaCaVIT(torch.nn.Module):
         # return {"pred_logits": x}
         
         b, c, h, w = x.size()
-        pooler = x.view(b, c * h * w)
+        pooler = x.reshape(b, c * h * w)
         # pooler = self.dropout_classificaition_1(torch.nn.ReLU()(self.pre_classifier(pooler)))
         # pooler = self.dropout_classificaition_2(torch.nn.ReLU()(self.classifier_hidden_1(pooler)))
         # pooler = self.dropout_classificaition_3(torch.nn.ReLU()(self.classifier_hidden_2(pooler)))
