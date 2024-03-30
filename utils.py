@@ -37,10 +37,15 @@ def reshape_channel_last(x):
 def get_metrics(targets, predictions):
 
     try:
-        targets = targets.cpu()
-        predictions = predictions.cpu()
+        targets = targets.detach().cpu()
     except:
         pass
+
+    try:
+        predictions = predictions.detach().cpu()
+    except:
+        pass
+
 
     accuracy = accuracy_score(targets, predictions)
     print("Accuracy:", accuracy)

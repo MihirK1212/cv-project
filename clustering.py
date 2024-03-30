@@ -5,13 +5,14 @@ import utils
 import torch.nn as nn
 import torch.nn.functional as F
 
+import config
 
 device = utils.get_device()
 
 class Clustering(torch.nn.Module):
     def __init__(
         self,
-        num_clusters=100
+        num_clusters=config.NUM_CLUSTERS
     ):
         super(Clustering, self).__init__()
         self.num_clusters = num_clusters   
@@ -29,7 +30,7 @@ class Clustering(torch.nn.Module):
 class KMeansClustering(torch.nn.Module):
     def __init__(
         self,
-        num_clusters=100
+        num_clusters=config.NUM_CLUSTERS
     ):
         super(KMeansClustering, self).__init__()
         self.num_clusters = num_clusters   
@@ -41,7 +42,7 @@ class KMeansClustering(torch.nn.Module):
         if self.cluster_centers is None:
             kmeans = KMeans(n_clusters=self.num_clusters)
         else:
-            kmeans = KMeans(n_clusters=self.num_clusters, init=self.cluster_centers, n_init=1)
+            kmeans = KMeans(n_clusters=self.num_clusters, init=self.cluster_centers, n_init='auto')
         
         cluster_assignments = kmeans.fit_predict(x.reshape(batch_size * num_tokens, -1).detach().cpu().numpy())
         self.cluster_centers = torch.tensor(kmeans.cluster_centers_).view(1, 1, -1).clone().to(device)
@@ -58,7 +59,7 @@ class KMeansClustering(torch.nn.Module):
 class HierarchicalClustering(torch.nn.Module):
     def __init__(
         self,
-        num_clusters=100,
+        num_clusters=config,
         linkage=None,
         distance_threshold=None
     ):
@@ -91,7 +92,7 @@ class HierarchicalClustering(torch.nn.Module):
 class MLPClustering(torch.nn.Module):
     def __init__(
         self,
-        num_clusters=100
+        num_clusters=config.NUM_CLUSTERS
     ):
         super(MLPClustering, self).__init__()
         self.num_clusters = num_clusters
