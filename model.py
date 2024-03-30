@@ -52,20 +52,20 @@ class PaCaVIT(torch.nn.Module):
         # self.pre_classifier = torch.nn.Linear(
         #     final_dense_dim, final_dense_dim
         # )
-        # self.dropout_classificaition_1 = torch.nn.Dropout(config.DROPOUT_CLASSIFICATION)
+        # self.dropout_pre_classifier = torch.nn.Dropout(config.DROPOUT_CLASSIFICATION)
 
-        # self.classifier_hidden_1 = torch.nn.Linear(
-        #     final_dense_dim, 1024
-        # )
-        # self.dropout_classificaition_2 = torch.nn.Dropout(config.DROPOUT_CLASSIFICATION)
+        self.classifier_hidden_1 = torch.nn.Linear(
+            final_dense_dim, 1024
+        )
+        self.dropout_classificaition_hidden_1 = torch.nn.Dropout(config.DROPOUT_CLASSIFICATION)
 
-        # self.classifier_hidden_2 = torch.nn.Linear(
-        #     1024, 256
-        # )
-        # self.dropout_classificaition_3 = torch.nn.Dropout(config.DROPOUT_CLASSIFICATION)
+        self.classifier_hidden_2 = torch.nn.Linear(
+            1024, 256
+        )
+        self.dropout_classificaition_hidden_2 = torch.nn.Dropout(config.DROPOUT_CLASSIFICATION)
 
         self.classifier = torch.nn.Linear(
-            final_dense_dim, config.NUM_CLASSES
+            256, config.NUM_CLASSES
         )
 
     def forward(self, x):
@@ -91,9 +91,9 @@ class PaCaVIT(torch.nn.Module):
         
         b, c, h, w = x.size()
         pooler = x.reshape(b, c * h * w)
-        # pooler = self.dropout_classificaition_1(torch.nn.ReLU()(self.pre_classifier(pooler)))
-        # pooler = self.dropout_classificaition_2(torch.nn.ReLU()(self.classifier_hidden_1(pooler)))
-        # pooler = self.dropout_classificaition_3(torch.nn.ReLU()(self.classifier_hidden_2(pooler)))
+        # pooler = self.dropout_pre_classifier(torch.nn.ReLU()(self.pre_classifier(pooler)))
+        pooler = self.dropout_classificaition_hidden_1(torch.nn.ReLU()(self.classifier_hidden_1(pooler)))
+        pooler = self.dropout_classificaition_hidden_2(torch.nn.ReLU()(self.classifier_hidden_2(pooler)))
 
         output = self.classifier(pooler)
 
