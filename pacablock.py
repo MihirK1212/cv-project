@@ -28,7 +28,7 @@ class PaCaAttention(torch.nn.Module):
 
     def forward(self, x, height, width, clustering_model):
 
-        x = utils.reshape_channel_last(x)
+        x = utils.reshape_channel_last(x).to(device)
         
         c = clustering_model(x)
         c = torch.transpose(c, 1, 2)
@@ -43,7 +43,7 @@ class PaCaAttention(torch.nn.Module):
         
         x = rearrange(x, "N B C -> B N C").to(device)
 
-        x = utils.reshape_channel_first(x, height, width)
+        x = utils.reshape_channel_first(x, height, width).to(device)
 
         return x
 
@@ -83,17 +83,17 @@ class FFN(torch.nn.Module):
 
     def forward(self, x, height, width):
 
-        x = utils.reshape_channel_last(x)
+        x = utils.reshape_channel_last(x).to(device)
         x = self.fc1(x)
-        x = utils.reshape_channel_first(x, height, width)
+        x = utils.reshape_channel_first(x, height, width).to(device)
 
         x = self.dwconv(x)
         x = self.act(x)
         x = self.drop(x)
 
-        x = utils.reshape_channel_last(x)
+        x = utils.reshape_channel_last(x).to(device)
         x = self.fc2(x)
-        x = utils.reshape_channel_first(x, height, width)
+        x = utils.reshape_channel_first(x, height, width).to(device)
         
         x = self.drop(x)
         return x
@@ -138,8 +138,8 @@ class PaCaBlock(torch.nn.Module):
         skip_connection_1 = x 
 
         if self.with_pos_embed:
-            x = self.pos_drop(utils.reshape_channel_last(x) + self.pos_embed)
-            x = utils.reshape_channel_first(x, self.input_img_shape[0], self.input_img_shape[1])
+            x = self.pos_drop(utils.reshape_channel_last(x).to(device) + self.pos_embed)
+            x = utils.reshape_channel_first(x, self.input_img_shape[0], self.input_img_shape[1]).to(device)
 
         x = self.layer_norm_1(x)
 
