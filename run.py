@@ -96,40 +96,40 @@ def valid(
     )
 
 
-# (
-#     paca_vit_model,
-#     training_loader,
-#     validation_loader,
-#     testing_loader,
-#     loss_function,
-#     optimizer,
-#     scheduler
-# ) = main.helper()
+(
+    paca_vit_model,
+    training_loader,
+    validation_loader,
+    testing_loader,
+    loss_function,
+    optimizer,
+    scheduler
+) = main.helper()
 
 
-# for epoch in range(config.NUM_EPOCHS):
+for epoch in range(config.NUM_EPOCHS):
         
-#     print("###########################")
-#     print()
+    print("###########################")
+    print()
 
 
-#     print("######### Training #########")
-#     train_loss, accuracy, precision, recall, f1, weighted_f1, micro_f1, macro_f1 = train(
-#         paca_vit_model,
-#         training_loader,
-#         loss_function,
-#         optimizer,
-#         scheduler
-#     )
-#     print()
+    print("######### Training #########")
+    train_loss, accuracy, precision, recall, f1, weighted_f1, micro_f1, macro_f1 = train(
+        paca_vit_model,
+        training_loader,
+        loss_function,
+        optimizer,
+        scheduler
+    )
+    print()
 
-#     print("######### Validation #########")
-#     valid_loss, accuracy, precision, recall, f1, weighted_f1, micro_f1, macro_f1 = valid(
-#         paca_vit_model,
-#         validation_loader,
-#         loss_function
-#     )
-#     print()
+    print("######### Validation #########")
+    valid_loss, accuracy, precision, recall, f1, weighted_f1, micro_f1, macro_f1 = valid(
+        paca_vit_model,
+        validation_loader,
+        loss_function
+    )
+    print()
 
 
 
