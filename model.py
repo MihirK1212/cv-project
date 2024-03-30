@@ -48,7 +48,25 @@ class PaCaVIT(torch.nn.Module):
 
         final_img_shape = img_size//(4 * 2**(self.num_blocks-1))
         final_dense_dim = self.embed_dims[-1]*final_img_shape*final_img_shape
-        print('FINAL DENSE DIM:', final_dense_dim)
+        
+        self.pre_classifier = torch.nn.Linear(
+            final_dense_dim, final_dense_dim
+        )
+        self.dropout_classificaition_1 = torch.nn.Dropout(config.DROPOUT_CLASSIFICATION)
+
+        self.classifier_hidden_1 = torch.nn.Linear(
+            final_dense_dim, 1024
+        )
+        self.dropout_classificaition_2 = torch.nn.Dropout(config.DROPOUT_CLASSIFICATION)
+
+        self.classifier_hidden_2 = torch.nn.Linear(
+            1024, 256
+        )
+        self.dropout_classificaition_3 = torch.nn.Dropout(config.DROPOUT_CLASSIFICATION)
+
+        self.classifier = torch.nn.Linear(
+            256, config.NUM_CLASSES
+        )
 
     def forward(self, x):
 
@@ -70,8 +88,16 @@ class PaCaVIT(torch.nn.Module):
             stage = f'layer_norm_{block_num}'
             layer_norm = getattr(self, stage)
             x = layer_norm(x)
+        
+        b, c, h, w = x.size()
+        pooler = x.view(b, c * h * w)
+        pooler = self.dropout_classificaition_1(torch.nn.ReLU()(self.pre_classifier(pooler)))
+        pooler = self.dropout_classificaition_2(torch.nn.ReLU()(self.classifier_hidden_1(pooler)))
+        pooler = self.dropout_classificaition_3(torch.nn.ReLU()(self.classifier_hidden_2(pooler)))
 
-        return x
+        output = self.classifier(pooler)
+
+        return {"pred_logits": output}
     
 def get_model():
     model = PaCaVIT()
