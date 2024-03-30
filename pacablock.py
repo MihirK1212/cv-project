@@ -6,39 +6,6 @@ from norm import LayerNorm2d
 from clustering import Clustering
 
 
-def trunc_normal(tensor, mean=0., std=1.):
-    size = tensor.shape
-    numel = tensor.numel()
-    truncation = 2 * std
-    lower = mean - truncation
-    upper = mean + truncation
-    with torch.no_grad():
-        normal_tensor = torch.randn(size)
-        normal_tensor = torch.clamp(normal_tensor, lower, upper)
-        normal_tensor = normal_tensor * std / normal_tensor.std()
-        tensor.copy_(normal_tensor)
-    return tensor
-
-def reshape_channel_first(x, height, width):
-    x = rearrange(x, 'b (h w) c -> b c h w', h=height, w=height)
-    return x
-
-def reshape_channel_last(x):
-    x = rearrange(x, 'b c h w -> b (h w) c')
-    return x
-
-class LayerNorm2d(torch.nn.Module):
-    def __init__(self, features, eps=1e-5):
-        super(LayerNorm2d, self).__init__()
-        self.gamma = torch.nn.Parameter(torch.ones(1, features, 1, 1))
-        self.beta = torch.nn.Parameter(torch.zeros(1, features, 1, 1))
-        self.eps = eps
-
-    def forward(self, x):
-        mean = x.mean(dim=(1, 2, 3), keepdim=True)
-        std = x.std(dim=(1, 2, 3), keepdim=True)
-        return self.gamma * (x - mean) / (std + self.eps) + self.beta
-
 class PaCaAttention(torch.nn.Module):
     def __init__(
         self,
@@ -63,27 +30,28 @@ class PaCaAttention(torch.nn.Module):
 
     def forward(self, x, height, width):
 
-        x = reshape_channel_last(x)
+        x = utils.reshape_channel_last(x)
         
         c = self.clustering(x)
         c = torch.transpose(c, 1, 2)
         c = c.softmax(dim=-1)
 
         z = torch.einsum("bmn,bnc->bmc", c, x)
-        print('z shape:', z.shape)
 
         x = rearrange(x, "B N C -> N B C")
         z = rearrange(z, "B M C -> M B C")
+
         x, attn = self.multihead_attn(x, z, z)
+        
         x = rearrange(x, "N B C -> B N C")
 
-        x = reshape_channel_first(x, height, width)
+        x = utils.reshape_channel_first(x, height, width)
 
         return x
 
 
 class DWConv(torch.nn.Module):
-    def __init__(self, embed_dim, kernel_size=3, bias=True, with_shortcut=False):
+    def __init__(self, embed_dim, kernel_size=3, bias=True, with_shortcut=True):
         super().__init__()
         self.dwconv = torch.nn.Conv2d(
             embed_dim, embed_dim, kernel_size, 1, (kernel_size - 1) // 2, bias=bias, groups=embed_dim
@@ -117,17 +85,17 @@ class FFN(torch.nn.Module):
 
     def forward(self, x, height, width):
 
-        x = reshape_channel_last(x)
+        x = utils.reshape_channel_last(x)
         x = self.fc1(x)
-        x = reshape_channel_first(x, height, width)
+        x = utils.reshape_channel_first(x, height, width)
 
         x = self.dwconv(x)
         x = self.act(x)
         x = self.drop(x)
 
-        x = reshape_channel_last(x)
+        x = utils.reshape_channel_last(x)
         x = self.fc2(x)
-        x = reshape_channel_first(x, height, width)
+        x = utils.reshape_channel_first(x, height, width)
         
         x = self.drop(x)
         return x
@@ -155,7 +123,7 @@ class PaCaBlock(torch.nn.Module):
                 torch.zeros(1, self.input_img_shape[0] * self.input_img_shape[1], self.embed_dim)
             )
             self.pos_drop = torch.nn.Dropout(p=drop)
-            trunc_normal(self.pos_embed, std=0.02)
+            utils.trunc_normal(self.pos_embed, std=0.02)
 
         self.layer_norm_1 = LayerNorm2d(self.embed_dim)
 
@@ -172,8 +140,8 @@ class PaCaBlock(torch.nn.Module):
         skip_connection_1 = x 
 
         if self.with_pos_embed:
-            x = self.pos_drop(reshape_channel_last(x) + self.pos_embed)
-            x = reshape_channel_first(x, self.input_img_shape[0], self.input_img_shape[1])
+            x = self.pos_drop(utils.reshape_channel_last(x) + self.pos_embed)
+            x = utils.reshape_channel_first(x, self.input_img_shape[0], self.input_img_shape[1])
 
         x = self.layer_norm_1(x)
 
@@ -190,10 +158,3 @@ class PaCaBlock(torch.nn.Module):
         x = x + skip_connection_2
 
         return x
-
-# x = torch.rand(17, 96, 56, 56)
-
-# pct = PaCaBlock(embed_dim=x.shape[1], num_heads=8, input_img_shape=(x.shape[2], x.shape[3]), with_pos_embed=True)
-# output = pct(x)
-
-# print(output.shape)
