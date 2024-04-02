@@ -1,11 +1,12 @@
 import torch
-from sklearn.cluster import KMeans, AgglomerativeClustering, DBSCAN
+from sklearn.cluster import KMeans, AgglomerativeClustering
+from sklearn.mixture import GaussianMixture
 import numpy as np
 import utils
 import torch.nn as nn
 import torch.nn.functional as F
-
 import config
+
 
 device = utils.get_device()
 
@@ -56,61 +57,113 @@ class KMeansClustering(torch.nn.Module):
         
         return cluster_tensor
 
+
 class HierarchicalClustering(torch.nn.Module):
     def __init__(
         self,
-        num_clusters=config,
-        linkage=None,
-        distance_threshold=None
+        num_clusters=config.NUM_CLUSTERS,
+        linkage=None
     ):
         super(HierarchicalClustering, self).__init__()
         self.num_clusters = num_clusters
         self.linkage = linkage
-        self.distance_threshold = distance_threshold
 
     def forward(self, x):
         batch_size, num_tokens, _ = x.shape
         
         if self.linkage is None:
-            clustering = AgglomerativeClustering(n_clusters=self.num_clusters, distance_threshold=self.distance_threshold)
-            cluster_assignments = clustering.fit_predict(x.reshape(batch_size * num_tokens, -1))
+            clustering = AgglomerativeClustering(n_clusters=self.num_clusters)
+            cluster_assignments = clustering.fit_predict(x.reshape(batch_size * num_tokens, -1).detach().cpu().numpy())
         else:
             clustering = AgglomerativeClustering(n_clusters=self.num_clusters, linkage=self.linkage)
-            cluster_assignments = clustering.fit_predict(x.reshape(batch_size * num_tokens, -1))
+            cluster_assignments = clustering.fit_predict(x.reshape(batch_size * num_tokens, -1).detach().cpu().numpy())
         
         tensor = torch.zeros(batch_size * num_tokens, self.num_clusters)
         for i in range(batch_size * num_tokens):
             tensor[i, cluster_assignments[i]] = 1
         
         tensor = tensor.reshape(batch_size, num_tokens, self.num_clusters)
-        
+        cluster_tensor = tensor.clone().to(device)
+
         self.linkage = clustering.children_
         
-        return tensor
+        return cluster_tensor
 
 
 class MLPClustering(torch.nn.Module):
     def __init__(
         self,
-        num_clusters=config.NUM_CLUSTERS
+        num_clusters=config.NUM_CLUSTERS,
+        hidden_dim=256,
+        num_layers=2,
+        activation=torch.nn.ReLU(),
+        input_dim=96,
     ):
         super(MLPClustering, self).__init__()
         self.num_clusters = num_clusters
-        self.hidden_dim = 96
-
-        self.fc1 = nn.Linear(self.hidden_dim, self.hidden_dim)
-        self.fc2 = nn.Linear(self.hidden_dim, self.num_clusters)
+        self.hidden_dim = hidden_dim
+        self.num_layers = num_layers
+        self.activation = activation
+        self.input_dim=input_dim
+        layers = []
+        for i in range(num_layers):
+            if i == 0:
+                layers.append(torch.nn.Linear(input_dim, hidden_dim))
+            elif i == num_layers - 1:
+                layers.append(torch.nn.Linear(hidden_dim, num_clusters))
+            else:
+                layers.append(torch.nn.Linear(hidden_dim, hidden_dim))
+            layers.append(activation)
+        self.mlp = torch.nn.Sequential(*layers)
 
     def forward(self, x):
         batch_size, num_tokens, input_dim = x.shape
-        self.fc1.in_features = input_dim
-        x = x.reshape(-1, input_dim)
-        x = F.relu(self.fc1(x))
-        x = self.fc2(x)
+        x = x.reshape(batch_size * num_tokens, input_dim)
 
-        cluster_probs = x.view(batch_size, num_tokens, self.num_clusters)
+        mlp_output = self.mlp(x)
 
-        return cluster_probs 
+        mlp_output = mlp_output.view(batch_size, num_tokens, self.num_clusters)
+
+        cluster_tensor = torch.nn.functional.softmax(mlp_output, dim=-1)
+        print(cluster_tensor.shape)
+        return cluster_tensor
+
     
+class GMMClustering(torch.nn.Module):
+    def __init__(
+        self,
+        num_clusters=config.NUM_CLUSTERS
+    ):
+        super(GMMClustering, self).__init__()
+        self.num_clusters = num_clusters
+        self.means = None
+        self.covariances = None
+        self.weights = None
+
+    def forward(self, x):
+        batch_size, num_tokens, input_dim = x.shape
+        x_reshaped = x.reshape(-1, input_dim)
+
+        if self.means is None:
+            gmm = GaussianMixture(n_components=self.num_clusters)
+        else:
+            gmm = GaussianMixture(n_components=self.num_clusters, means_init=self.means,
+                                  covariances_init=self.covariances, weights_init=self.weights)
+
+        gmm.fit(x_reshaped.detach().cpu().numpy())
+
+        self.means = torch.tensor(gmm.means_).detach().cpu().numpy()
+        self.covariances = torch.tensor(gmm.covariances_).detach().cpu().numpy()
+        self.weights = torch.tensor(gmm.weights_).detach().cpu().numpy()
+
+        cluster_assignments = gmm.predict(x_reshaped.detach().cpu().numpy())
+        tensor = torch.zeros(batch_size * num_tokens, self.num_clusters)
+        for i in range(batch_size * num_tokens):
+            tensor[i, cluster_assignments[i]] = 1
+        tensor = tensor.view(batch_size, num_tokens, self.num_clusters)
+        cluster_tensor = tensor.clone().to(device)
+        return cluster_tensor
+    
+
 def get_clustering_model():
     return KMeansClustering()
