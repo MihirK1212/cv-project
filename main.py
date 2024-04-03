@@ -1,10 +1,10 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
-from sklearn.model_selection import train_test_split
 
 import model
 import utils
 import config
+import dataset
 
 device = utils.get_device()
 
@@ -19,17 +19,13 @@ class CustomDataset(Dataset):
     def __getitem__(self, idx):
         return {'x': self.X[idx], 'labels': self.y[idx]}
 
-def get_dataset(num_samples = 1000):
-  X = [torch.rand(3, config.IMG_SIZE, config.IMG_SIZE).to(device).cuda() for _ in range(num_samples)]
-  y = [torch.randint(0, config.NUM_CLASSES, (1,)).item() for _ in range(num_samples)]
-  return X, y
-
 def helper():
 
-    X, y = get_dataset()
+    X_train, X_valid, X_test, y_train, y_valid, y_test = dataset.get_dataset()
 
-    X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=42)
-    X_valid, X_test, y_valid, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
+    print('TRAIN DATASET SIZE:', len(X_train))
+    print('VALID DATASET SIZE:', len(X_valid))
+    print('TEST DATASET SIZE:', len(X_test))
 
     train_dataset = CustomDataset(X_train, y_train)
     valid_dataset = CustomDataset(X_valid, y_valid)
