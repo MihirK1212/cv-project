@@ -9,9 +9,9 @@ import config
 class PaCaVIT(torch.nn.Module):
     def __init__(
         self,
-        img_size = 224,
+        img_size = config.IMG_SIZE,
         num_blocks = 3,
-        embed_dims=[96, 192, 384],
+        embed_dims=[config.INITIAL_EMBED_DIM, 2*config.INITIAL_EMBED_DIM, 4*config.INITIAL_EMBED_DIM],
         depths=[2, 2, 2],
     ):
         super(PaCaVIT, self).__init__()
