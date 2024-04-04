@@ -7,6 +7,7 @@ from sklearn.metrics import (
     f1_score,
     confusion_matrix,
 )
+import os
 
 def get_device():
     return "cuda" if torch.cuda.is_available() else "cpu"
@@ -31,6 +32,14 @@ def reshape_channel_first(x, height, width):
 def reshape_channel_last(x):
     x = rearrange(x, 'b c h w -> b (h w) c')
     return x
+
+def create_directory_if_not_exists(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+        print(f"Directory '{directory}' created successfully.")
+    else:
+        print(f"Directory '{directory}' already exists.")
+
 
 def get_pairwise_euclidian_distance(tensor1, tensor2):
     m, n = tensor1.size(0), tensor2.size(0)

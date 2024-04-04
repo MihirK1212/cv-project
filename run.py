@@ -109,6 +109,8 @@ if __name__ == "__main__":
     timestamp = datetime.now().strftime("%d%m%Y%H%M%S")
     log_file_path = f"./logs/train_{timestamp}.txt"
 
+    utils.create_directory_if_not_exists('./saved_models')
+
     config_lines = [
         f"SEED: {config.SEED}\n", 
         f"BATCH_SIZE: {config.BATCH_SIZE}\n",
