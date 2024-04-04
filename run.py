@@ -7,6 +7,7 @@ import main
 from model import PaCaVIT
 
 device = utils.get_device()
+assert device == "cuda"
 
 # x = torch.rand(config.BATCH_SIZE, 3, config.IMG_SIZE, config.IMG_SIZE).to(device)
 # model = PaCaVIT().to(device)

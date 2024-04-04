@@ -10,6 +10,7 @@ import config
 
 device = utils.get_device()
 
+
 class Clustering(torch.nn.Module):
     def __init__(
         self,
