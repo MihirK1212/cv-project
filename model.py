@@ -30,12 +30,10 @@ class PaCaVIT(torch.nn.Module):
             )
             setattr(self, f'downsample_{block_num}', downsample_layer)
 
-            
+            clustering_model = get_clustering_model()
+            setattr(self, f'clustering_{block_num}', clustering_model)
+
             for depth_num in range(self.depths[block_num]): 
-
-                clustering_model = get_clustering_model()
-                setattr(self, f'clustering_{block_num}_{depth_num}', clustering_model)
-
                 paca_block = PaCaBlock(
                     embed_dim=embed_dims[block_num],
                     num_heads=config.NUM_HEADS,
@@ -50,11 +48,6 @@ class PaCaVIT(torch.nn.Module):
         final_img_shape = img_size//(4 * 2**(self.num_blocks-1))
         final_dense_dim = self.embed_dims[-1]*final_img_shape*final_img_shape
         
-        # self.pre_classifier = torch.nn.Linear(
-        #     final_dense_dim, final_dense_dim
-        # )
-        # self.dropout_pre_classifier = torch.nn.Dropout(config.DROPOUT_CLASSIFICATION)
-
         self.classifier_hidden_1 = torch.nn.Linear(
             final_dense_dim, 1024
         )
@@ -77,11 +70,10 @@ class PaCaVIT(torch.nn.Module):
             downsample_layer = getattr(self, stage)
             x = downsample_layer(x) 
 
+            stage = f'clustering_{block_num}'
+            clustering_model = getattr(self, stage)
+
             for depth_num in range(self.depths[block_num]):
-
-                stage = f'clustering_{block_num}_{depth_num}'
-                clustering_model = getattr(self, stage)
-
                 stage = f'pacablock_{block_num}_{depth_num}'
                 paca_block = getattr(self, stage)
                 x = paca_block(x, clustering_model)
@@ -92,7 +84,6 @@ class PaCaVIT(torch.nn.Module):
         
         b, c, h, w = x.size()
         pooler = x.reshape(b, c * h * w)
-        # pooler = self.dropout_pre_classifier(torch.nn.ReLU()(self.pre_classifier(pooler)))
         pooler = self.dropout_classificaition_hidden_1(torch.nn.ReLU()(self.classifier_hidden_1(pooler)))
         pooler = self.dropout_classificaition_hidden_2(torch.nn.ReLU()(self.classifier_hidden_2(pooler)))
 
@@ -102,10 +93,9 @@ class PaCaVIT(torch.nn.Module):
     
     def save_clustering_models(self):
         for block_num in range(self.num_blocks):
-            for depth_num in range(self.depths[block_num]):
-                stage = f'clustering_{block_num}_{depth_num}'
-                clustering_model = getattr(self, stage)
-                joblib.dump(clustering_model, f'./saved_models/{stage}')
+            stage = f'clustering_{block_num}'
+            clustering_model = getattr(self, stage)
+            joblib.dump(clustering_model, f'./saved_models/{stage}')
 
     
 def get_model():

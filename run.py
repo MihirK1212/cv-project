@@ -113,6 +113,9 @@ for epoch in range(config.NUM_EPOCHS):
 
     torch.save(paca_vit_model.state_dict(), './saved_models/paca_vit.pt')
     paca_vit_model.save_clustering_models()
+
+    device = utils.get_device()
+    print('DEVICE:', device)
         
     print("###########################")
     print()

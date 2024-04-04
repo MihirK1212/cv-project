@@ -25,13 +25,11 @@ def trunc_normal(tensor, mean=0., std=1.):
     return tensor.to(get_device())
 
 def reshape_channel_first(x, height, width):
-    device = get_device()
-    x = rearrange(x, 'b (h w) c -> b c h w', h=height, w=height).to(device)
+    x = rearrange(x, 'b (h w) c -> b c h w', h=height, w=height)
     return x
 
 def reshape_channel_last(x):
-    device = get_device()
-    x = rearrange(x, 'b c h w -> b (h w) c').to(device)
+    x = rearrange(x, 'b c h w -> b (h w) c')
     return x
 
 def get_metrics(targets, predictions):
