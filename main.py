@@ -27,6 +27,12 @@ def helper():
     print('VALID DATASET SIZE:', len(X_valid))
     print('TEST DATASET SIZE:', len(X_test))
 
+    assert len(X_train) == len(y_train)
+    assert len(X_valid) == len(y_valid)
+    assert len(X_test) == len(y_test)
+    assert X_train[0].shape == (3, config.IMG_SIZE, config.IMG_SIZE)
+    assert len(list(set(y_train))) == len(list(set(y_valid))) and len(list(set(y_train))) == config.NUM_CLASSES
+
     train_dataset = CustomDataset(X_train, y_train)
     valid_dataset = CustomDataset(X_valid, y_valid)
     test_dataset = CustomDataset(X_test, y_test)

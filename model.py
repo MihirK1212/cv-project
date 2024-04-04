@@ -1,4 +1,5 @@
 import torch
+import joblib
 
 import downsample
 from pacablock import PaCaBlock
@@ -60,12 +61,12 @@ class PaCaVIT(torch.nn.Module):
         self.dropout_classificaition_hidden_1 = torch.nn.Dropout(config.DROPOUT_CLASSIFICATION)
 
         self.classifier_hidden_2 = torch.nn.Linear(
-            1024, 256
+            1024, 512
         )
         self.dropout_classificaition_hidden_2 = torch.nn.Dropout(config.DROPOUT_CLASSIFICATION)
 
         self.classifier = torch.nn.Linear(
-            256, config.NUM_CLASSES
+            512, config.NUM_CLASSES
         )
 
     def forward(self, x):
@@ -98,6 +99,14 @@ class PaCaVIT(torch.nn.Module):
         output = self.classifier(pooler)
 
         return {"pred_logits": output}
+    
+    def save_clustering_models(self):
+        for block_num in range(self.num_blocks):
+            for depth_num in range(self.depths[block_num]):
+                stage = f'clustering_{block_num}_{depth_num}'
+                clustering_model = getattr(self, stage)
+                joblib.dump(clustering_model, f'./saved_models/{stage}')
+
     
 def get_model():
     model = PaCaVIT()
