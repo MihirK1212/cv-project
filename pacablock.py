@@ -16,7 +16,7 @@ class PaCaAttention(torch.nn.Module):
         super(PaCaAttention, self).__init__()
 
         self.num_heads = num_heads
-        self.attn_drop = 0.0
+        self.attn_drop = 0.2
         
         self.multihead_attn = torch.nn.MultiheadAttention(
             embed_dim, 
@@ -69,7 +69,7 @@ class FFN(torch.nn.Module):
         in_features,
         hidden_features=None,
         out_features=None,
-        drop=0.0,
+        drop=0.2,
         with_shortcut=True,
     ):
         super().__init__()
@@ -106,7 +106,7 @@ class PaCaBlock(torch.nn.Module):
         num_heads,
         input_img_shape,
         with_pos_embed,
-        drop=0.0
+        drop=0.2
     ):
         super().__init__()
 
@@ -114,14 +114,15 @@ class PaCaBlock(torch.nn.Module):
         self.embed_dim = embed_dim
         self.with_pos_embed = with_pos_embed
         self.input_img_shape = input_img_shape
+        self.drop_path = torch.nn.Dropout(drop)
 
         if self.with_pos_embed:
             assert self.input_img_shape is not None
             self.pos_embed = torch.nn.Parameter(
                 torch.zeros(1, self.input_img_shape[0] * self.input_img_shape[1], self.embed_dim)
             )
+            self.pos_embed = torch.nn.functional.normalize(self.pos_embed, mean=0, std=0.02)
             self.pos_drop = torch.nn.Dropout(p=drop)
-            utils.trunc_normal(self.pos_embed, std=0.02)
 
         self.layer_norm_1 = LayerNorm2d(self.embed_dim)
 
@@ -152,6 +153,7 @@ class PaCaBlock(torch.nn.Module):
         x = self.layer_norm_2(x)
         x = self.ffn(x, self.input_img_shape[0], self.input_img_shape[1])        
         x = self.layer_norm_3(x)
+        x = self.drop_path(x)
 
         x = x + skip_connection_2
 

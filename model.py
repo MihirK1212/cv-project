@@ -12,9 +12,9 @@ class PaCaVIT(torch.nn.Module):
     def __init__(
         self,
         img_size = config.IMG_SIZE,
-        num_blocks = 3,
-        embed_dims=[config.INITIAL_EMBED_DIM, 2*config.INITIAL_EMBED_DIM, 4*config.INITIAL_EMBED_DIM],
-        depths=[2, 2, 2],
+        num_blocks = 4,
+        embed_dims=[96, 192, 320, 384],
+        depths=[2, 2, 2, 2],
     ):
         super(PaCaVIT, self).__init__()
 
@@ -59,8 +59,13 @@ class PaCaVIT(torch.nn.Module):
         )
         self.dropout_classificaition_hidden_2 = torch.nn.Dropout(config.DROPOUT_CLASSIFICATION)
 
+        self.classifier_hidden_3 = torch.nn.Linear(
+            512, 256
+        )
+        self.dropout_classificaition_hidden_3 = torch.nn.Dropout(config.DROPOUT_CLASSIFICATION)
+
         self.classifier = torch.nn.Linear(
-            512, config.NUM_CLASSES
+            256, config.NUM_CLASSES
         )
 
     def forward(self, x):
@@ -87,6 +92,7 @@ class PaCaVIT(torch.nn.Module):
         pooler = x.reshape(b, c * h * w)
         pooler = self.dropout_classificaition_hidden_1(torch.nn.ReLU()(self.classifier_hidden_1(pooler)))
         pooler = self.dropout_classificaition_hidden_2(torch.nn.ReLU()(self.classifier_hidden_2(pooler)))
+        pooler = self.dropout_classificaition_hidden_3(torch.nn.ReLU()(self.classifier_hidden_3(pooler)))
 
         output = self.classifier(pooler)
 
