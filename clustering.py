@@ -45,19 +45,19 @@ class KMeansClustering(torch.nn.Module):
         if self.cluster_centers is None:
             kmeans = KMeans(n_clusters=self.num_clusters, n_init='auto')
         else:
-            kmeans = KMeans(n_clusters=self.num_clusters, init=self.cluster_centers.detach().cpu().numpy(), n_init=1)
+            kmeans = KMeans(n_clusters=self.num_clusters, init=self.cluster_centers, n_init=1)
         
         cluster_assignments = kmeans.fit_predict(data.detach().cpu().numpy())
-        self.cluster_centers = torch.tensor(kmeans.cluster_centers_)
+        self.cluster_centers = kmeans.cluster_centers_
+
+        cluster_tensor = utils.get_pairwise_euclidian_distance(data, torch.tensor(self.cluster_centers)).to(device)
         
-        tensor = torch.zeros(batch_size * num_tokens, self.num_clusters)
+        # tensor = torch.zeros(batch_size * num_tokens, self.num_clusters)
         # for i in range(batch_size * num_tokens):
-        #     tensor[i, cluster_assignments[i]] = 1
-        for i in range(batch_size * num_tokens):
-            for j in range(self.num_clusters):
-                tensor[i, j] =  torch.norm(data[i].detach().to(device) - self.cluster_centers[j].detach().to(device))
-        tensor = tensor.reshape(batch_size, num_tokens, self.num_clusters)
-        cluster_tensor = tensor.clone().to(device)
+        #     for j in range(self.num_clusters):
+        #         tensor[i, j] =  torch.norm(data[i].detach().to(device) - self.cluster_centers[j].detach().to(device))
+        # tensor = tensor.reshape(batch_size, num_tokens, self.num_clusters)
+        # cluster_tensor = tensor.clone().to(device)
         
         return cluster_tensor
 

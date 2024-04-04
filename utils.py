@@ -32,6 +32,14 @@ def reshape_channel_last(x):
     x = rearrange(x, 'b c h w -> b (h w) c')
     return x
 
+def get_pairwise_euclidian_distance(tensor1, tensor2):
+    m, n = tensor1.size(0), tensor2.size(0)
+    d = tensor1.size(1)
+    tensor1 = tensor1.unsqueeze(1).expand(m, n, d)
+    tensor2 = tensor2.unsqueeze(0).expand(m, n, d)
+    distances = torch.sqrt(torch.sum((tensor1 - tensor2) ** 2, dim=2))
+    return distances
+
 def get_metrics(targets, predictions):
 
     try:
