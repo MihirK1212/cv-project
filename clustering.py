@@ -52,14 +52,6 @@ class KMeansClustering(torch.nn.Module):
         self.cluster_centers = kmeans.cluster_centers_
 
         cluster_tensor = utils.get_pairwise_euclidian_distance(data, torch.tensor(self.cluster_centers).to(device)).reshape(batch_size, num_tokens, self.num_clusters)
-        
-        # tensor = torch.zeros(batch_size * num_tokens, self.num_clusters)
-        # for i in range(batch_size * num_tokens):
-        #     for j in range(self.num_clusters):
-        #         tensor[i, j] =  torch.norm(data[i].detach().to(device) - self.cluster_centers[j].detach().to(device))
-        # tensor = tensor.reshape(batch_size, num_tokens, self.num_clusters)
-        # cluster_tensor = tensor.clone().to(device)
-        
         return cluster_tensor
 
 

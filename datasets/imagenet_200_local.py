@@ -22,21 +22,19 @@ def get_train_dataset():
 
     X_train, y_train = [], []
 
-    TRAIN_BASE_PATH = './tiny-imagenet-200/tiny-imagenet-200/train'
-
     global class_id_to_class_label
     curr_class_label = 0
 
     count_train_error = 0
 
-    for class_id in os.listdir(TRAIN_BASE_PATH):
+    for class_id in os.listdir(config.TRAIN_BASE_PATH):
         assert str(class_id) not in class_id_to_class_label
         class_id_to_class_label[str(class_id)] = curr_class_label
         curr_class_label+=1
 
-        for img_file_name in os.listdir(os.path.join(TRAIN_BASE_PATH, class_id, 'images')):
+        for img_file_name in os.listdir(os.path.join(config.TRAIN_BASE_PATH, class_id, 'images')):
             try:
-                img_path = os.path.join(TRAIN_BASE_PATH, class_id, 'images', img_file_name)
+                img_path = os.path.join(config.TRAIN_BASE_PATH, class_id, 'images', img_file_name)
                 img = read_img(img_path)
                 X_train.append(img)
                 y_train.append(class_id_to_class_label[str(class_id)])
@@ -54,20 +52,18 @@ def get_valid_dataset():
 
     X_valid, y_valid = [], []
 
-    VALID_BASE_PATH = 'tiny-imagenet-200/tiny-imagenet-200/val/images'
-    VALID_ANNOTATIONS_PATH = 'tiny-imagenet-200/tiny-imagenet-200/val/val_annotations.txt'
-
+    
     global class_id_to_class_label
 
     count_valid_error = 0
 
     img_file_name_to_class_id = dict()
-    with open(VALID_ANNOTATIONS_PATH, 'r') as f:
+    with open(config.VALID_ANNOTATIONS_PATH, 'r') as f:
         for line in f:
             try:
                 spl_line = line.split('\t')
                 img_file_name, class_id = spl_line[0], spl_line[1]
-                img_path = os.path.join(VALID_BASE_PATH, img_file_name)
+                img_path = os.path.join(config.VALID_BASE_PATH, img_file_name)
                 img = read_img(img_path)
                 class_label = class_id_to_class_label[str(class_id)]
                 X_valid.append(img)

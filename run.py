@@ -1,5 +1,7 @@
 import torch
 from tqdm import tqdm
+import os
+from datetime import datetime
 
 import utils
 import config
@@ -8,13 +10,6 @@ from model import PaCaVIT
 
 device = utils.get_device()
 assert device == "cuda"
-
-# x = torch.rand(config.BATCH_SIZE, 3, config.IMG_SIZE, config.IMG_SIZE).to(device)
-# model = PaCaVIT().to(device)
-# x.to(device)
-# model.to(device)
-# output = model(x)
-# print(output['pred_logits'].shape)
 
 def train(
     model, training_loader, loss_function, optimizer, scheduler
@@ -98,45 +93,86 @@ def valid(
         targets, predictions
     )
 
+if __name__ == "__main__":
 
-(
-    paca_vit_model,
-    training_loader,
-    validation_loader,
-    testing_loader,
-    loss_function,
-    optimizer,
-    scheduler
-) = main.helper()
-
-
-for epoch in range(config.NUM_EPOCHS):
-
-    if not config.USE_RANDOM_DATASET:
-        torch.save(paca_vit_model.state_dict(), './saved_models/paca_vit.pt')
-        paca_vit_model.save_clustering_models()
-
-    device = utils.get_device()
-    print('DEVICE:', device)
-        
-    print("###########################")
-    print()
-
-
-    print("######### Training #########")
-    train_loss, accuracy, precision, recall, f1, weighted_f1, micro_f1, macro_f1 = train(
+    (
         paca_vit_model,
         training_loader,
+        validation_loader,
+        testing_loader,
         loss_function,
         optimizer,
         scheduler
-    )
-    print()
+    ) = main.helper()
+    
 
-    print("######### Validation #########")
-    valid_loss, accuracy, precision, recall, f1, weighted_f1, micro_f1, macro_f1 = valid(
-        paca_vit_model,
-        validation_loader,
-        loss_function
-    )
-    print()
+    timestamp = datetime.now().strftime("%d%m%Y%H%M%S")
+    log_file_path = f"./logs/train_{timestamp}.txt"
+
+    config_lines = [
+        f"SEED: {config.SEED}\n", 
+        f"BATCH_SIZE: {config.BATCH_SIZE}\n",
+        f"INITIAL_LR: {config.LEARNING_RATE}\n",
+        f"LR_SCHEDULER_GAMMA: {config.LR_SCHEDULER_GAMMA}\n",
+        f"WEIGHT_DECAY: {config.WEIGHT_DECAY}\n",
+        f"APPLY_GRADIENT_CLIPPING: {config.APPLY_GRADIENT_CLIPPING}\n",
+        f"USE_LR_SCHEDULER: {config.USE_LR_SCHEDULER}\n",
+        "\n",
+        f"DATASET: {config.DATASET}\n"
+        "\n",
+    ]
+    with open(log_file_path, "w+") as file:
+        file.writelines(config_lines)
+    
+    max_acc = 0
+
+    for epoch in range(config.NUM_EPOCHS):
+
+        log = open(log_file_path, "a")
+        log.write(f"Epoch: {epoch+1}\n")            
+
+        device = utils.get_device()
+        print('DEVICE:', device)
+            
+        print("###########################")
+        print()
+
+
+        print("######### Training #########")
+        train_loss, accuracy, precision, recall, f1, weighted_f1, micro_f1, macro_f1 = train(
+            paca_vit_model,
+            training_loader,
+            loss_function,
+            optimizer,
+            scheduler
+        )
+        print()
+    
+        train_lines = [
+            f"Training Metrics:\n"
+            f" Loss: {train_loss}, Accuracy: {accuracy}, Precision: {precision}, Recall: {recall}, F1: {f1}, WeightedF1: {weighted_f1}, MicroF1: {micro_f1}, MacroF1: {macro_f1}\n"
+        ]
+        log.writelines(train_lines)
+
+        print("######### Validation #########")
+        valid_loss, accuracy, precision, recall, f1, weighted_f1, micro_f1, macro_f1 = valid(
+            paca_vit_model,
+            validation_loader,
+            loss_function
+        )
+        print()
+
+        valid_lines = [
+            f"Validation Metrics:\n"
+            f" Loss: {valid_loss}, Accuracy: {accuracy}, Precision: {precision}, Recall: {recall}, F1: {f1}, WeightedF1: {weighted_f1}, MicroF1: {micro_f1}, MacroF1: {macro_f1}\n"
+        ]
+        log.writelines(valid_lines)
+
+        log.write("\n")
+        log.close()
+
+        if accuracy > max_acc and not config.USE_RANDOM_DATASET:
+            max_acc = accuracy
+            torch.save(paca_vit_model.state_dict(), os.path.join(config.MODEL_SAVE_BASE_PATH, 'paca_vit.pt'))
+            paca_vit_model.save_clustering_models()
+            

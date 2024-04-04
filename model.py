@@ -1,5 +1,6 @@
 import torch
 import joblib
+import os
 
 import downsample
 from pacablock import PaCaBlock
@@ -95,7 +96,7 @@ class PaCaVIT(torch.nn.Module):
         for block_num in range(self.num_blocks):
             stage = f'clustering_{block_num}'
             clustering_model = getattr(self, stage)
-            joblib.dump(clustering_model, f'./saved_models/{stage}')
+            joblib.dump(clustering_model, os.path.join(config.MODEL_SAVE_BASE_PATH, stage))
 
     
 def get_model():

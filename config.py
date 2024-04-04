@@ -14,7 +14,18 @@ USE_LR_SCHEDULER = True
 APPLY_GRADIENT_CLIPPING = True
 
 DROPOUT_CLASSIFICATION = 0.2
-NUM_CLUSTERS = 10
+NUM_CLUSTERS = 25
 
-USE_RANDOM_DATASET = True
+USE_RANDOM_DATASET = False
 NUM_RANDOM_SAMPLES = 1000
+
+TRAIN_BASE_PATH = './tiny-imagenet-200/tiny-imagenet-200/train'
+MODEL_SAVE_BASE_PATH = './saved_models'
+VALID_BASE_PATH = 'tiny-imagenet-200/tiny-imagenet-200/val/images'
+VALID_ANNOTATIONS_PATH = 'tiny-imagenet-200/tiny-imagenet-200/val/val_annotations.txt'
+
+SEED = 42
+
+IMAGENET2000LOCAL = 'imagenet200local'
+CIFAR10HUGGINGFACE = 'cifar10huggingface'
+DATASET = CIFAR10HUGGINGFACE
