@@ -173,6 +173,6 @@ if __name__ == "__main__":
 
         if accuracy > max_acc and not config.USE_RANDOM_DATASET:
             max_acc = accuracy
-            torch.save(paca_vit_model.state_dict(), os.path.join(config.MODEL_SAVE_BASE_PATH, 'paca_vit.pt'))
+            torch.save(paca_vit_model.state_dict(), os.path.join(config.MODEL_SAVE_BASE_PATH, f'paca_vit_{config.DATASET}.pt'))
             paca_vit_model.save_clustering_models()
             

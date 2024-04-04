@@ -4,7 +4,7 @@ from torch.utils.data import Dataset, DataLoader
 import model
 import utils
 import config
-from datasets import imagenet_200_local
+from datasets import imagenet_200_local, cifar10_huggingface
 
 device = utils.get_device()
 
@@ -43,7 +43,8 @@ def helper():
         validation_loader = DataLoader(valid_dataset, batch_size=config.BATCH_SIZE, shuffle=False)
         testing_loader = DataLoader(test_dataset, batch_size=config.BATCH_SIZE, shuffle=False)
 
-    
+    elif config.DATASET == config.CIFAR10HUGGINGFACE:
+        training_loader, validation_loader, testing_loader = cifar10_huggingface.get_dataset()
 
     else:
         raise ValueError

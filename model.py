@@ -96,7 +96,7 @@ class PaCaVIT(torch.nn.Module):
         for block_num in range(self.num_blocks):
             stage = f'clustering_{block_num}'
             clustering_model = getattr(self, stage)
-            joblib.dump(clustering_model, os.path.join(config.MODEL_SAVE_BASE_PATH, stage))
+            joblib.dump(clustering_model, os.path.join(config.MODEL_SAVE_BASE_PATH, f'{stage}_{config.DATASET}'))
 
     
 def get_model():

@@ -1,9 +1,9 @@
-BATCH_SIZE = 64
-IMG_SIZE = 64
-NUM_CLASSES = 200
-NUM_EPOCHS = 10
+BATCH_SIZE = 32
+IMG_SIZE = 32
+NUM_CLASSES = 10
+NUM_EPOCHS = 20
 NUM_HEADS = 4
-INITIAL_EMBED_DIM = 96
+INITIAL_EMBED_DIM = 48
 
 LEARNING_RATE = 1e-04
 MIN_LR = 1e-6
@@ -20,9 +20,10 @@ USE_RANDOM_DATASET = False
 NUM_RANDOM_SAMPLES = 1000
 
 TRAIN_BASE_PATH = './tiny-imagenet-200/tiny-imagenet-200/train'
-MODEL_SAVE_BASE_PATH = './saved_models'
 VALID_BASE_PATH = 'tiny-imagenet-200/tiny-imagenet-200/val/images'
 VALID_ANNOTATIONS_PATH = 'tiny-imagenet-200/tiny-imagenet-200/val/val_annotations.txt'
+
+MODEL_SAVE_BASE_PATH = './saved_models'
 
 SEED = 42
 
