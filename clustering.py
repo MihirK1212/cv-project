@@ -50,7 +50,7 @@ class KMeansClustering(torch.nn.Module):
         cluster_assignments = kmeans.fit_predict(data.detach().cpu().numpy())
         self.cluster_centers = kmeans.cluster_centers_
 
-        cluster_tensor = utils.get_pairwise_euclidian_distance(data, torch.tensor(self.cluster_centers)).to(device)
+        cluster_tensor = utils.get_pairwise_euclidian_distance(data, torch.tensor(self.cluster_centers).to(device))
         
         # tensor = torch.zeros(batch_size * num_tokens, self.num_clusters)
         # for i in range(batch_size * num_tokens):
