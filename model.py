@@ -34,7 +34,7 @@ class PaCaVIT(torch.nn.Module):
             input_img_shape = (img_size//(4 * 2**block_num), img_size//(4 * 2**block_num))
             num_tokens = input_img_shape[0]*input_img_shape[1]
 
-            clustering_model = get_clustering_model(config.NUM_CLUSTERS)
+            clustering_model = get_clustering_model(config.NUM_CLUSTERS if num_tokens < 100 else 2*config.NUM_CLUSTERS)
             setattr(self, f'clustering_{block_num}', clustering_model)
 
             for depth_num in range(self.depths[block_num]): 

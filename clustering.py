@@ -43,8 +43,8 @@ class KMeansClustering(torch.nn.Module):
 
         data = x.reshape(batch_size * num_tokens, -1)
 
-        print('data shape:', data.shape)
-        print('nan count:', torch.isnan(data).sum().item())
+        # print('data shape:', data.shape)
+        # print('nan count:', torch.isnan(data).sum().item())
 
         if self.cluster_centers is None:
             kmeans = KMeans(n_clusters=self.num_clusters, n_init='auto')
