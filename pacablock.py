@@ -124,7 +124,7 @@ class PaCaBlock(torch.nn.Module):
             # self.pos_embed = torch.nn.functional.normalize(self.pos_embed, mean=0, std=0.02)
             self.pos_drop = torch.nn.Dropout(p=drop)
 
-        self.layer_norm_1 = LayerNorm2d(self.embed_dim)
+        # self.layer_norm_1 = LayerNorm2d(self.embed_dim)
 
         self.paca_attn = PaCaAttention(
             num_tokens=self.input_img_shape[0]*self.input_img_shape[1], embed_dim=self.embed_dim, num_heads=self.num_heads
@@ -142,7 +142,7 @@ class PaCaBlock(torch.nn.Module):
             x = self.pos_drop(utils.reshape_channel_last(x) + self.pos_embed)
             x = utils.reshape_channel_first(x, self.input_img_shape[0], self.input_img_shape[1])
 
-        x = self.layer_norm_1(x)
+        # x = self.layer_norm_1(x)
 
         x = self.paca_attn(x, self.input_img_shape[0], self.input_img_shape[1], clustering_model)
         
