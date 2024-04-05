@@ -84,7 +84,7 @@ class FFN(torch.nn.Module):
     def forward(self, x, height, width):
 
         x = utils.reshape_channel_last(x)
-        x = torch.nn.Relu()(self.fc1(x))
+        x = self.fc1(x)
         x = utils.reshape_channel_first(x, height, width)
 
         x = self.dwconv(x)
@@ -92,7 +92,7 @@ class FFN(torch.nn.Module):
         x = self.drop(x)
 
         x = utils.reshape_channel_last(x)
-        x = torch.nn.Relu()(self.fc2(x))
+        x = self.fc2(x)
         x = utils.reshape_channel_first(x, height, width)
         
         x = self.drop(x)
