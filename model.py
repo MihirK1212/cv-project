@@ -42,12 +42,12 @@ class PaCaVIT(torch.nn.Module):
                     embed_dim=embed_dims[block_num],
                     num_heads=config.NUM_HEADS,
                     input_img_shape=input_img_shape,
-                    with_pos_embed=False
+                    with_pos_embed=(depth_num == 0)
                 )
                 setattr(self, f'pacablock_{block_num}_{depth_num}', paca_block)
 
-            # layer_norm = LayerNorm2d(embed_dims[block_num])
-            # setattr(self, f'layer_norm_{block_num}', layer_norm)
+            layer_norm = LayerNorm2d(embed_dims[block_num])
+            setattr(self, f'layer_norm_{block_num}', layer_norm)
 
         final_img_shape = img_size//(4 * 2**(self.num_blocks-1))
         final_dense_dim = self.embed_dims[-1]*final_img_shape*final_img_shape
@@ -87,9 +87,9 @@ class PaCaVIT(torch.nn.Module):
                 paca_block = getattr(self, stage)
                 x = paca_block(x, clustering_model)
 
-            # stage = f'layer_norm_{block_num}'
-            # layer_norm = getattr(self, stage)
-            # x = layer_norm(x)
+            stage = f'layer_norm_{block_num}'
+            layer_norm = getattr(self, stage)
+            x = layer_norm(x)
         
         b, c, h, w = x.size()
         pooler = x.reshape(b, c * h * w)
