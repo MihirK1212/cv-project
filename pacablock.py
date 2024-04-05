@@ -18,15 +18,17 @@ class PaCaAttention(torch.nn.Module):
         self.layer_norm = torch.nn.LayerNorm(embed_dim)
 
         self.num_heads = num_heads
-        self.attn_drop = 0.0
+        self.attn_drop = 0.2
         
         self.multihead_attn = torch.nn.MultiheadAttention(
             embed_dim, 
             self.num_heads, 
-            dropout=self.attn_drop
+            dropout=self.attn_drop,
+            batch_first=True
         )
 
         self.proj = torch.nn.Linear(embed_dim, embed_dim)
+        self.proj_drop = torch.nn.Dropout(0.2)
 
     def forward(self, x, height, width, clustering_model):
 
@@ -40,12 +42,15 @@ class PaCaAttention(torch.nn.Module):
 
         z = self.layer_norm(z)
 
-        x = rearrange(x, "B N C -> N B C")
-        z = rearrange(z, "B M C -> M B C")
+        # x = rearrange(x, "B N C -> N B C")
+        # z = rearrange(z, "B M C -> M B C")
 
         x, attn = self.multihead_attn(x, z, z)
         
-        x = rearrange(x, "N B C -> B N C")
+        # x = rearrange(x, "N B C -> B N C")
+
+        x = self.proj(x)
+        x = self.proj_drop(x)
 
         x = utils.reshape_channel_first(x, height, width)
 
