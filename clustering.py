@@ -54,7 +54,7 @@ class KMeansClustering(torch.nn.Module):
         cluster_assignments = kmeans.fit_predict(data.detach().cpu().numpy())
         self.cluster_centers = kmeans.cluster_centers_
 
-        cluster_tensor = utils.get_pairwise_euclidian_distance(data, torch.tensor(self.cluster_centers).to(device)).reshape(batch_size, num_tokens, self.num_clusters)
+        cluster_tensor = utils.get_pairwise_inverse_euclidian_distance(data, torch.tensor(self.cluster_centers).to(device)).reshape(batch_size, num_tokens, self.num_clusters)
         return cluster_tensor
 
 
@@ -142,6 +142,9 @@ class GMMClustering(torch.nn.Module):
 
     def forward(self, x):
         batch_size, num_tokens, input_dim = x.shape
+
+        data = x.reshape(batch_size * num_tokens, -1).cpu().numpy()
+
         x_reshaped = x.reshape(-1, input_dim)
 
         if self.means is None:
@@ -150,19 +153,22 @@ class GMMClustering(torch.nn.Module):
             gmm = GaussianMixture(n_components=self.num_clusters, means_init=self.means,
                                   covariances_init=self.covariances, weights_init=self.weights)
 
-        gmm.fit(x_reshaped.detach().cpu().numpy())
+        gmm.fit(data)
 
-        self.means = torch.tensor(gmm.means_).detach().cpu().numpy()
-        self.covariances = torch.tensor(gmm.covariances_).detach().cpu().numpy()
-        self.weights = torch.tensor(gmm.weights_).detach().cpu().numpy()
+        self.means = gmm.means_
+        self.covariances = gmm.covariances_
+        self.weights = gmm.weights_
 
-        cluster_assignments = gmm.predict(x_reshaped.detach().cpu().numpy())
-        tensor = torch.zeros(batch_size * num_tokens, self.num_clusters)
-        for i in range(batch_size * num_tokens):
-            tensor[i, cluster_assignments[i]] = 1
-        tensor = tensor.view(batch_size, num_tokens, self.num_clusters)
-        cluster_tensor = tensor.clone().to(device)
+        cluster_tensor = torch.tensor(gmm.predict_proba(data)).to(device).reshape(batch_size, num_tokens, self.num_clusters)
         return cluster_tensor
+
+        # cluster_assignments = gmm.predict(data)
+        # tensor = torch.zeros(batch_size * num_tokens, self.num_clusters)
+        # for i in range(batch_size * num_tokens):
+        #     tensor[i, cluster_assignments[i]] = 1
+        # tensor = tensor.view(batch_size, num_tokens, self.num_clusters)
+        # cluster_tensor = tensor.clone().to(device)
+        # return cluster_tensor
     
 
 def get_clustering_model(num_clusters):

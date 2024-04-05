@@ -15,8 +15,10 @@ class PaCaAttention(torch.nn.Module):
     ):
         super(PaCaAttention, self).__init__()
 
+        self.layer_norm = torch.nn.LayerNorm(embed_dim)
+
         self.num_heads = num_heads
-        self.attn_drop = 0.2
+        self.attn_drop = 0.0
         
         self.multihead_attn = torch.nn.MultiheadAttention(
             embed_dim, 
@@ -35,6 +37,8 @@ class PaCaAttention(torch.nn.Module):
         c = c.softmax(dim=-1)
 
         z = torch.einsum("bmn,bnc->bmc", c, x)
+
+        z = self.layer_norm(z)
 
         x = rearrange(x, "B N C -> N B C")
         z = rearrange(z, "B M C -> M B C")
@@ -73,8 +77,8 @@ class FFN(torch.nn.Module):
         with_shortcut=True,
     ):
         super().__init__()
-        out_features =  in_features
         hidden_features = 4*in_features
+        out_features =  in_features
         self.fc1 = torch.nn.Linear(in_features, hidden_features)
         self.dwconv = DWConv(hidden_features, with_shortcut=with_shortcut)
         self.act = torch.nn.GELU()
@@ -96,6 +100,7 @@ class FFN(torch.nn.Module):
         x = utils.reshape_channel_first(x, height, width)
         
         x = self.drop(x)
+
         return x
 
 class PaCaBlock(torch.nn.Module):
@@ -105,7 +110,7 @@ class PaCaBlock(torch.nn.Module):
         embed_dim,
         num_heads,
         input_img_shape,
-        with_pos_embed,
+        with_pos_embed=False,
         drop=0.2
     ):
         super().__init__()
@@ -124,15 +129,15 @@ class PaCaBlock(torch.nn.Module):
             # self.pos_embed = torch.nn.functional.normalize(self.pos_embed, mean=0, std=0.02)
             self.pos_drop = torch.nn.Dropout(p=drop)
 
-        self.layer_norm_1 = LayerNorm2d(self.embed_dim)
+        # self.layer_norm_1 = LayerNorm2d(self.embed_dim)
 
         self.paca_attn = PaCaAttention(
             num_tokens=self.input_img_shape[0]*self.input_img_shape[1], embed_dim=self.embed_dim, num_heads=self.num_heads
         )
 
-        self.layer_norm_2 = LayerNorm2d(self.embed_dim)
+        self.layer_norm_2 = torch.nn.LayerNorm(self.embed_dim)
         self.ffn = FFN(in_features=self.embed_dim)
-        self.layer_norm_3 = LayerNorm2d(self.embed_dim)
+        # self.layer_norm_3 = LayerNorm2d(self.embed_dim)
 
     def forward(self, x, clustering_model):
 
@@ -142,18 +147,21 @@ class PaCaBlock(torch.nn.Module):
             x = self.pos_drop(utils.reshape_channel_last(x) + self.pos_embed)
             x = utils.reshape_channel_first(x, self.input_img_shape[0], self.input_img_shape[1])
 
-        x = self.layer_norm_1(x)
+        # x = self.layer_norm_1(x)
 
         x = self.paca_attn(x, self.input_img_shape[0], self.input_img_shape[1], clustering_model)
         
         x = x + skip_connection_1
 
         skip_connection_2 = x
-
+        
+        height, width = x.shape[2], x.shape[3]
+        x = utils.reshape_channel_last(x)
         x = self.layer_norm_2(x)
+        x = utils.reshape_channel_first(x, height, width)
 
         x = self.ffn(x, self.input_img_shape[0], self.input_img_shape[1])        
-        x = self.layer_norm_3(x)
+        # x = self.layer_norm_3(x)
         x = self.drop_path(x)
 
         x = x + skip_connection_2

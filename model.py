@@ -7,6 +7,7 @@ from pacablock import PaCaBlock
 from downsample import LayerNorm2d
 from clustering import get_clustering_model
 import config
+import utils
 
 class PaCaVIT(torch.nn.Module):
     def __init__(
@@ -34,7 +35,7 @@ class PaCaVIT(torch.nn.Module):
             input_img_shape = (img_size//(4 * 2**block_num), img_size//(4 * 2**block_num))
             num_tokens = input_img_shape[0]*input_img_shape[1]
 
-            clustering_model = get_clustering_model(config.NUM_CLUSTERS if num_tokens < 100 else 2*config.NUM_CLUSTERS)
+            clustering_model = get_clustering_model(config.NUM_CLUSTERS if num_tokens == 4 else 2*config.NUM_CLUSTERS)
             setattr(self, f'clustering_{block_num}', clustering_model)
 
             for depth_num in range(self.depths[block_num]): 
@@ -43,10 +44,11 @@ class PaCaVIT(torch.nn.Module):
                     num_heads=config.NUM_HEADS,
                     input_img_shape=input_img_shape,
                     with_pos_embed=(depth_num == 0)
+                    # with_pos_embed=False
                 )
                 setattr(self, f'pacablock_{block_num}_{depth_num}', paca_block)
 
-            layer_norm = LayerNorm2d(embed_dims[block_num])
+            layer_norm = torch.nn.LayerNorm(embed_dims[block_num])
             setattr(self, f'layer_norm_{block_num}', layer_norm)
 
         final_img_shape = img_size//(4 * 2**(self.num_blocks-1))
@@ -89,7 +91,11 @@ class PaCaVIT(torch.nn.Module):
 
             stage = f'layer_norm_{block_num}'
             layer_norm = getattr(self, stage)
+
+            height, width = x.shape[2], x.shape[3]
+            x = utils.reshape_channel_last(x)
             x = layer_norm(x)
+            x = utils.reshape_channel_first(x, height, width)
         
         b, c, h, w = x.size()
         pooler = x.reshape(b, c * h * w)
@@ -111,19 +117,20 @@ class PaCaVIT(torch.nn.Module):
 def get_model():
     model = PaCaVIT()
     loss_function = torch.nn.CrossEntropyLoss()
-    # optimizer = torch.optim.Adam(
-    #     params=model.parameters(),
-    #     lr=config.LEARNING_RATE,
-    #     weight_decay=config.WEIGHT_DECAY,
-    #     betas=(0.9, 0.98),
-    #     eps=1e-9,
-    # )
+    optimizer = torch.optim.Adam(
+        params=model.parameters(),
+        lr=config.LEARNING_RATE,
+        weight_decay=config.WEIGHT_DECAY,
+        betas=(0.9, 0.98),
+        eps=1e-9,
+    )
     # optimizer = torch.optim.SGD(
     #     params=model.parameters()
     # )
-    optimizer = torch.optim.Adam(
-        params=model.parameters()
-    )
+    # optimizer = torch.optim.Adam(
+    #     params=model.parameters(),
+    #     lr=config.LEARNING_RATE
+    # )
     scheduler = torch.optim.lr_scheduler.StepLR(
         optimizer, step_size=5, gamma=config.LR_SCHEDULER_GAMMA
     )

@@ -40,13 +40,19 @@ def create_directory_if_not_exists(directory):
     else:
         print(f"Directory '{directory}' already exists.")
 
+def replace_elements(input_tensor, tolerance=1e-5):
+    input_tensor = input_tensor.float()
+    replaced_tensor = torch.where(input_tensor > tolerance, 1 / input_tensor, torch.ones_like(input_tensor) / tolerance)
+    return replaced_tensor
 
-def get_pairwise_euclidian_distance(tensor1, tensor2):
+
+def get_pairwise_inverse_euclidian_distance(tensor1, tensor2):
     m, n = tensor1.size(0), tensor2.size(0)
     d = tensor1.size(1)
     tensor1 = tensor1.unsqueeze(1).expand(m, n, d)
     tensor2 = tensor2.unsqueeze(0).expand(m, n, d)
     distances = torch.sqrt(torch.sum((tensor1 - tensor2) ** 2, dim=2))
+    distances = replace_elements(distances)
     return distances
 
 def get_metrics(targets, predictions):
