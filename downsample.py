@@ -22,12 +22,12 @@ class StemDownsample(torch.nn.Module):
                 padding=(kernel_size - 1) // 2,
             ),
         )
-        self.layer_norm = LayerNorm2d(out_channels)
+        # self.layer_norm = LayerNorm2d(out_channels)
 
 
     def forward(self, x):
         x = self.proj(x) 
-        x = self.layer_norm(x)
+        # x = self.layer_norm(x)
         return x
 
 class TransitionDownsample(torch.nn.Module):
@@ -41,12 +41,12 @@ class TransitionDownsample(torch.nn.Module):
             stride=patch_size,
             padding=(kernel_size - 1) // 2,
         )
-        self.layer_norm = LayerNorm2d(out_channels)
+        # self.layer_norm = LayerNorm2d(out_channels)
 
 
     def forward(self, x):
         x = self.proj(x)
-        x = self.layer_norm(x)
+        # x = self.layer_norm(x)
         return x
     
 def get_downsample_layer(layer_num, in_channels, out_channels):
