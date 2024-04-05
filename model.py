@@ -111,7 +111,7 @@ class PaCaVIT(torch.nn.Module):
 def get_model():
     model = PaCaVIT()
     loss_function = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(
+    optimizer = torch.optim.Adamw(
         params=model.parameters(),
         lr=config.LEARNING_RATE,
         weight_decay=config.WEIGHT_DECAY,
