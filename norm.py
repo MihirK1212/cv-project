@@ -5,7 +5,7 @@ import utils
 device = utils.get_device()
 
 class LayerNorm2d(torch.nn.Module):
-    def __init__(self, features, eps=1e-5):
+    def __init__(self, features, eps=1e-4):
         super(LayerNorm2d, self).__init__()
         self.gamma = torch.nn.Parameter(torch.ones(1, features, 1, 1))
         self.beta = torch.nn.Parameter(torch.zeros(1, features, 1, 1))

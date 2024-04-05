@@ -111,12 +111,18 @@ class PaCaVIT(torch.nn.Module):
 def get_model():
     model = PaCaVIT()
     loss_function = torch.nn.CrossEntropyLoss()
+    # optimizer = torch.optim.Adam(
+    #     params=model.parameters(),
+    #     lr=config.LEARNING_RATE,
+    #     weight_decay=config.WEIGHT_DECAY,
+    #     betas=(0.9, 0.98),
+    #     eps=1e-9,
+    # )
+    # optimizer = torch.optim.SGD(
+    #     params=model.parameters()
+    # )
     optimizer = torch.optim.Adam(
-        params=model.parameters(),
-        lr=config.LEARNING_RATE,
-        weight_decay=config.WEIGHT_DECAY,
-        betas=(0.9, 0.98),
-        eps=1e-9,
+        params=model.parameters()
     )
     scheduler = torch.optim.lr_scheduler.StepLR(
         optimizer, step_size=5, gamma=config.LR_SCHEDULER_GAMMA

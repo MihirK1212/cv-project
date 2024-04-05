@@ -24,15 +24,15 @@ def get_dataset():
     validation_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=config.BATCH_SIZE, shuffle=False)
     testing_loader = validation_loader
 
-    def check_for_nan(loader, dataset_type):
-        nan_found = False
-        for i, batch in enumerate(loader):
-            images = batch['x']
-            if torch.isnan(images).any():
-                print(f"NaN found in {dataset_type} loader in batch {i}")
-                nan_found = True
-        if not nan_found:
-            print(f"No NaN values found in {dataset_type} loader")
+    # def check_for_nan(loader, dataset_type):
+    #     nan_found = False
+    #     for i, batch in enumerate(loader):
+    #         images = batch['x']
+    #         if torch.isnan(images).any():
+    #             print(f"NaN found in {dataset_type} loader in batch {i}")
+    #             nan_found = True
+    #     if not nan_found:
+    #         print(f"No NaN values found in {dataset_type} loader")
 
     # Assuming train_loader and test_loader are already defined
 
