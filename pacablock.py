@@ -73,8 +73,8 @@ class FFN(torch.nn.Module):
         with_shortcut=True,
     ):
         super().__init__()
-        out_features = out_features or in_features
-        hidden_features = hidden_features or in_features
+        out_features =  in_features
+        hidden_features = 4*in_features
         self.fc1 = torch.nn.Linear(in_features, hidden_features)
         self.dwconv = DWConv(hidden_features, with_shortcut=with_shortcut)
         self.act = torch.nn.GELU()
@@ -84,7 +84,7 @@ class FFN(torch.nn.Module):
     def forward(self, x, height, width):
 
         x = utils.reshape_channel_last(x)
-        x = self.fc1(x)
+        x = torch.nn.Relu()(self.fc1(x))
         x = utils.reshape_channel_first(x, height, width)
 
         x = self.dwconv(x)
@@ -92,7 +92,7 @@ class FFN(torch.nn.Module):
         x = self.drop(x)
 
         x = utils.reshape_channel_last(x)
-        x = self.fc2(x)
+        x = torch.nn.Relu()(self.fc2(x))
         x = utils.reshape_channel_first(x, height, width)
         
         x = self.drop(x)
@@ -132,7 +132,7 @@ class PaCaBlock(torch.nn.Module):
 
         self.layer_norm_2 = LayerNorm2d(self.embed_dim)
         self.ffn = FFN(in_features=self.embed_dim)
-        self.layer_norm_3 = LayerNorm2d(self.embed_dim)
+        # self.layer_norm_3 = LayerNorm2d(self.embed_dim)
 
     def forward(self, x, clustering_model):
 
@@ -151,8 +151,9 @@ class PaCaBlock(torch.nn.Module):
         skip_connection_2 = x
 
         x = self.layer_norm_2(x)
+
         x = self.ffn(x, self.input_img_shape[0], self.input_img_shape[1])        
-        x = self.layer_norm_3(x)
+        # x = self.layer_norm_3(x)
         x = self.drop_path(x)
 
         x = x + skip_connection_2
