@@ -42,7 +42,7 @@ class PaCaVIT(torch.nn.Module):
                     embed_dim=embed_dims[block_num],
                     num_heads=config.NUM_HEADS,
                     input_img_shape=input_img_shape,
-                    with_pos_embed=(depth_num == 0)
+                    with_pos_embed=False
                 )
                 setattr(self, f'pacablock_{block_num}_{depth_num}', paca_block)
 
