@@ -162,5 +162,5 @@ class GMMClustering(torch.nn.Module):
         return cluster_tensor
     
 
-def get_clustering_model():
-    return KMeansClustering()
+def get_clustering_model(num_clusters):
+    return KMeansClustering(num_clusters=num_clusters)
