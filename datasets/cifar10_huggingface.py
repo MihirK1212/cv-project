@@ -36,12 +36,12 @@ def get_dataset():
 
     # Assuming train_loader and test_loader are already defined
 
-    # Check for NaN values in train loader
-    print("Checking train loader for NaN values:")
-    check_for_nan(training_loader, "train")
+    # # Check for NaN values in train loader
+    # print("Checking train loader for NaN values:")
+    # check_for_nan(training_loader, "train")
 
-    # Check for NaN values in test loader
-    print("Checking test loader for NaN values:")
-    check_for_nan(testing_loader, "test")
+    # # Check for NaN values in test loader
+    # print("Checking test loader for NaN values:")
+    # check_for_nan(testing_loader, "test")
 
     return training_loader, validation_loader, testing_loader
