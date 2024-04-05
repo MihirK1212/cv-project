@@ -130,7 +130,7 @@ class PaCaBlock(torch.nn.Module):
             num_tokens=self.input_img_shape[0]*self.input_img_shape[1], embed_dim=self.embed_dim, num_heads=self.num_heads
         )
 
-        self.layer_norm_2 = LayerNorm2d(self.embed_dim)
+        # self.layer_norm_2 = LayerNorm2d(self.embed_dim)
         self.ffn = FFN(in_features=self.embed_dim)
         # self.layer_norm_3 = LayerNorm2d(self.embed_dim)
 
@@ -150,7 +150,7 @@ class PaCaBlock(torch.nn.Module):
 
         skip_connection_2 = x
 
-        x = self.layer_norm_2(x)
+        # x = self.layer_norm_2(x)
 
         x = self.ffn(x, self.input_img_shape[0], self.input_img_shape[1])        
         # x = self.layer_norm_3(x)
