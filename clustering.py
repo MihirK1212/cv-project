@@ -172,4 +172,4 @@ class GMMClustering(torch.nn.Module):
     
 
 def get_clustering_model(num_clusters):
-    return KMeansClustering(num_clusters=num_clusters)
+    return GaussianMixture(num_clusters=num_clusters)

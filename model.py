@@ -15,13 +15,15 @@ class PaCaVIT(torch.nn.Module):
         img_size = config.IMG_SIZE,
         num_blocks = 3,
         embed_dims=[96, 192, 384],
-        depths=[2, 2, 2],
+        depths=[2, 2, 1],
     ):
         super(PaCaVIT, self).__init__()
 
         self.num_blocks = num_blocks
         self.embed_dims = embed_dims
         self.depths = depths
+
+        self.batch_norm = torch.nn.BatchNorm2d(3)
         
         for block_num in range(self.num_blocks):
 
@@ -35,7 +37,8 @@ class PaCaVIT(torch.nn.Module):
             input_img_shape = (img_size//(4 * 2**block_num), img_size//(4 * 2**block_num))
             num_tokens = input_img_shape[0]*input_img_shape[1]
 
-            clustering_model = get_clustering_model(config.NUM_CLUSTERS if num_tokens == 4 else 2*config.NUM_CLUSTERS)
+            # clustering_model = get_clustering_model(config.NUM_CLUSTERS if num_tokens == 4 else 2*config.NUM_CLUSTERS)
+            clustering_model = get_clustering_model(config.NUM_CLUSTERS)
             setattr(self, f'clustering_{block_num}', clustering_model)
 
             for depth_num in range(self.depths[block_num]): 
@@ -74,6 +77,8 @@ class PaCaVIT(torch.nn.Module):
         )
 
     def forward(self, x):
+
+        x = self.batch_norm(x)
 
         for block_num in range(self.num_blocks):
 

@@ -10,24 +10,14 @@ class CustomCIFAR10(datasets.CIFAR10):
 
 def get_dataset():
     # Transformations to apply to the data
-    # Define transformations
-
-    transform_train = transforms.Compose([
-        transforms.RandomRotation(degrees=5),  # Randomly rotate the image by up to 5 degrees
-        transforms.RandomAffine(degrees=0, translate=(0.2, 0.2)),  # Randomly zoom the image with a factor of 0.2
-        transforms.ToTensor(),                 # Convert the image to a PyTorch tensor
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))  # Normalize the image
-    ])
-
-    transform_test = transforms.Compose([
+    transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
-
     # Load CIFAR-10 dataset
-    train_dataset = CustomCIFAR10(root='./data', train=True, download=True, transform=transform_test)
-    test_dataset = CustomCIFAR10(root='./data', train=False, download=True, transform=transform_test)
+    train_dataset = CustomCIFAR10(root='./data', train=True, download=True, transform=transform)
+    test_dataset = CustomCIFAR10(root='./data', train=False, download=True, transform=transform)
 
     # Create DataLoader
     training_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=config.BATCH_SIZE, shuffle=True)

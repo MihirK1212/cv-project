@@ -1,0 +1,6 @@
+myenv
+venv
+__pycache__
+tiny-imagenet-200/
+tiny-imagenet-200.zip
+saved_models/
