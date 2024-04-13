@@ -132,7 +132,7 @@ class PaCaBlock(torch.nn.Module):
             self.pos_embed = torch.nn.Parameter(
                 torch.rand(1, self.input_img_shape[0] * self.input_img_shape[1], self.embed_dim)
             )
-            self.pos_embed = torch.nn.functional.normalize(self.pos_embed, mean=0, std=0.02)
+            # self.pos_embed = torch.nn.functional.normalize(self.pos_embed, mean=0, std=0.02)
             self.pos_drop = torch.nn.Dropout(p=drop)
 
         # self.layer_norm_1 = LayerNorm2d(self.embed_dim)
