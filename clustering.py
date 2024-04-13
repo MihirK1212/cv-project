@@ -6,6 +6,7 @@ import utils
 import torch.nn as nn
 import torch.nn.functional as F
 import config
+from sklearn.metrics import silhouette_score
 
 
 device = utils.get_device()
@@ -53,6 +54,9 @@ class KMeansClustering(torch.nn.Module):
         
         cluster_assignments = kmeans.fit_predict(data.detach().cpu().numpy())
         self.cluster_centers = kmeans.cluster_centers_
+
+        silhouette_val = silhouette_score(data.detach().cpu().numpy(), kmeans.labels_)
+        print('kmeans silhouette score:', )
 
         cluster_tensor = utils.get_pairwise_inverse_euclidian_distance(data, torch.tensor(self.cluster_centers).to(device)).reshape(batch_size, num_tokens, self.num_clusters)
         return cluster_tensor
@@ -143,15 +147,13 @@ class GMMClustering(torch.nn.Module):
     def forward(self, x):
         batch_size, num_tokens, input_dim = x.shape
 
-        data = x.reshape(batch_size * num_tokens, -1).cpu().numpy()
-
-        x_reshaped = x.reshape(-1, input_dim)
+        data = x.reshape(batch_size * num_tokens, -1).detach().cpu().numpy()
 
         if self.means is None:
             gmm = GaussianMixture(n_components=self.num_clusters)
         else:
             gmm = GaussianMixture(n_components=self.num_clusters, means_init=self.means,
-                                  covariances_init=self.covariances, weights_init=self.weights)
+                                  weights_init=self.weights)
 
         gmm.fit(data)
 
@@ -159,7 +161,7 @@ class GMMClustering(torch.nn.Module):
         self.covariances = gmm.covariances_
         self.weights = gmm.weights_
 
-        cluster_tensor = torch.tensor(gmm.predict_proba(data)).to(device).reshape(batch_size, num_tokens, self.num_clusters)
+        cluster_tensor = torch.tensor(gmm.predict_proba(data)).to(device).reshape(batch_size, num_tokens, self.num_clusters).float()
         return cluster_tensor
 
         # cluster_assignments = gmm.predict(data)
@@ -172,4 +174,4 @@ class GMMClustering(torch.nn.Module):
     
 
 def get_clustering_model(num_clusters):
-    return GaussianMixture(num_clusters=num_clusters)
+    return KMeansClustering(num_clusters=num_clusters)

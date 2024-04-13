@@ -94,3 +94,53 @@ def get_metrics(targets, predictions):
     print(confusion_mat)
 
     return accuracy, precision, recall, f1, weighted_f1, micro_f1, macro_f1
+
+
+def silhouette_value(samples, cluster_assignments, num_clusters):
+    """
+    Calculate the silhouette value for a given clustering.
+    
+    Parameters:
+    samples (torch.Tensor): A tensor of shape (n, d) representing 'n' samples with 'd' features each.
+    cluster_assignments (torch.Tensor): A tensor of shape (n,) representing the cluster assignment for each sample.
+    num_clusters (int): The number of clusters 'm' (range of cluster assignments [0, m-1]).
+    
+    Returns:
+    float: The mean silhouette value of the clustering.
+    """
+    
+    # Ensure the tensors are on the same device
+    samples = samples.to(cluster_assignments.device)
+    
+    # Calculate pairwise distances between samples
+    n = samples.shape[0]
+    pairwise_distances = torch.cdist(samples, samples)
+    
+    # Calculate intra-cluster distance (a) and nearest-cluster distance (b)
+    a = torch.zeros(n)
+    b = torch.full((n,), float('inf'))
+    
+    for i in range(n):
+        # Samples in the same cluster as sample i
+        same_cluster_mask = cluster_assignments == cluster_assignments[i]
+        same_cluster_mask[i] = False  # Exclude the sample itself
+        if same_cluster_mask.any():
+            a[i] = pairwise_distances[i, same_cluster_mask].mean()
+        
+        # Calculate the average distance to the nearest other cluster
+        for cluster in range(num_clusters):
+            if cluster != cluster_assignments[i]:
+                # Samples in the other cluster
+                other_cluster_mask = cluster_assignments == cluster
+                if other_cluster_mask.any():
+                    mean_distance = pairwise_distances[i, other_cluster_mask].mean()
+                    if mean_distance < b[i]:
+                        b[i] = mean_distance
+    
+    # Calculate silhouette value for each sample
+    silhouette_values = (b - a) / torch.maximum(a, b)
+    
+    # Calculate the mean silhouette value
+    mean_silhouette_value = silhouette_values.mean().item()
+    
+    return mean_silhouette_value

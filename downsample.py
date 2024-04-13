@@ -28,10 +28,12 @@ class StemDownsample(torch.nn.Module):
 
     def forward(self, x):
         x = self.proj(x)
+
         height, width = x.shape[2], x.shape[3]
         x = utils.reshape_channel_last(x)
         x = self.layer_norm(x)
         x = utils.reshape_channel_first(x, height, width)
+        
         return x
 
 class TransitionDownsample(torch.nn.Module):
@@ -50,10 +52,12 @@ class TransitionDownsample(torch.nn.Module):
 
     def forward(self, x):
         x = self.proj(x)
+
         height, width = x.shape[2], x.shape[3]
         x = utils.reshape_channel_last(x)
         x = self.layer_norm(x)
         x = utils.reshape_channel_first(x, height, width)
+        
         return x
     
 def get_downsample_layer(layer_num, in_channels, out_channels):
