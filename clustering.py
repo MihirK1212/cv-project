@@ -38,6 +38,7 @@ class KMeansClustering(torch.nn.Module):
         super(KMeansClustering, self).__init__()
         self.num_clusters = num_clusters   
         self.cluster_centers = None
+        self.epoch_silhouette_values = []
         
     def forward(self, x):
         batch_size, num_tokens, _ = x.shape
@@ -56,10 +57,17 @@ class KMeansClustering(torch.nn.Module):
         self.cluster_centers = kmeans.cluster_centers_
 
         silhouette_val = silhouette_score(data.detach().cpu().numpy(), kmeans.labels_)
-        print('the kmeans silhouette score:', silhouette_val)
+        # print('the kmeans silhouette score:', silhouette_val)
+        self.epoch_silhouette_values.append(silhouette_val)
 
         cluster_tensor = utils.get_pairwise_inverse_euclidian_distance(data, torch.tensor(self.cluster_centers).to(device)).reshape(batch_size, num_tokens, self.num_clusters)
         return cluster_tensor
+
+    def clear_silhouette_values(self):
+        self.epoch_silhouette_values = []
+    
+    def get_avg_silhouette_value(self):
+        return sum(self.epoch_silhouette_values) / len(self.epoch_silhouette_values)
 
 
 class HierarchicalClustering(torch.nn.Module):

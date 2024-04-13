@@ -131,7 +131,9 @@ if __name__ == "__main__":
     for epoch in range(config.NUM_EPOCHS):
 
         log = open(log_file_path, "a")
-        log.write(f"Epoch: {epoch+1}\n")            
+        log.write(f"Epoch: {epoch+1}\n")    
+
+        paca_vit_model.clear_silhouette_values()     
 
         device = utils.get_device()
         print('DEVICE:', device)
@@ -172,6 +174,14 @@ if __name__ == "__main__":
 
         log.write("\n")
         log.close()
+
+        print()
+        print("~~~~~ SILHOUETTE ~~~~~~~~")
+        print('avg_silhouette_values:')
+        avg_silhouette_values = paca_vit_model.get_avg_silhouette_values()
+        print(avg_silhouette_values)
+        print("~~~~~ SILHOUETTE ~~~~~~~~")
+        print()
 
         if accuracy > max_acc and not config.USE_RANDOM_DATASET:
             max_acc = accuracy
