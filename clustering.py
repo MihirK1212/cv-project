@@ -56,7 +56,7 @@ class KMeansClustering(torch.nn.Module):
         self.cluster_centers = kmeans.cluster_centers_
 
         silhouette_val = silhouette_score(data.detach().cpu().numpy(), kmeans.labels_)
-        print('kmeans silhouette score:', silhouette_val)
+        print('the kmeans silhouette score:', silhouette_val)
 
         cluster_tensor = utils.get_pairwise_inverse_euclidian_distance(data, torch.tensor(self.cluster_centers).to(device)).reshape(batch_size, num_tokens, self.num_clusters)
         return cluster_tensor
