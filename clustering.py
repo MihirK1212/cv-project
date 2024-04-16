@@ -104,6 +104,12 @@ class HierarchicalClustering(torch.nn.Module):
         
         return cluster_tensor
 
+    def clear_silhouette_values(self):
+        self.epoch_silhouette_values = []
+    
+    def get_avg_silhouette_value(self):
+        return sum(self.epoch_silhouette_values) / len(self.epoch_silhouette_values)
+
 
 class MLPClustering(torch.nn.Module):
     def __init__(
@@ -185,4 +191,4 @@ class GMMClustering(torch.nn.Module):
     
 
 def get_clustering_model(num_clusters):
-    return KMeansClustering(num_clusters=num_clusters)
+    return HierarchicalClustering(num_clusters=num_clusters)
