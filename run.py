@@ -133,14 +133,14 @@ if __name__ == "__main__":
         log = open(log_file_path, "a")
         log.write(f"Epoch: {epoch+1}\n")    
 
-        paca_vit_model.clear_silhouette_values()     
-
+        
         device = utils.get_device()
         print('DEVICE:', device)
             
         print("###########################")
         print()
 
+        paca_vit_model.clear_silhouette_values()   
 
         print("######### Training #########")
         train_loss, accuracy, precision, recall, f1, weighted_f1, micro_f1, macro_f1 = train(
@@ -157,6 +157,17 @@ if __name__ == "__main__":
             f" Loss: {train_loss}, Accuracy: {accuracy}, Precision: {precision}, Recall: {recall}, F1: {f1}, WeightedF1: {weighted_f1}, MicroF1: {micro_f1}, MacroF1: {macro_f1}\n"
         ]
         log.writelines(train_lines)
+
+        print()
+        print("~~~~~ SILHOUETTE tRAINING ~~~~~~~~")
+        print('avg_silhouette_values:')
+        avg_silhouette_values = paca_vit_model.get_avg_silhouette_values()
+        print(avg_silhouette_values)
+        print("~~~~~ SILHOUETTE TRAINING~~~~~~~~")
+        print()
+
+
+        paca_vit_model.clear_silhouette_values()   
 
         print("######### Validation #########")
         valid_loss, accuracy, precision, recall, f1, weighted_f1, micro_f1, macro_f1 = valid(
@@ -176,11 +187,11 @@ if __name__ == "__main__":
         log.close()
 
         print()
-        print("~~~~~ SILHOUETTE ~~~~~~~~")
+        print("~~~~~ SILHOUETTE VALIDATION ~~~~~~~~")
         print('avg_silhouette_values:')
         avg_silhouette_values = paca_vit_model.get_avg_silhouette_values()
         print(avg_silhouette_values)
-        print("~~~~~ SILHOUETTE ~~~~~~~~")
+        print("~~~~~ SILHOUETTE VALIDATION~~~~~~~~")
         print()
 
         if accuracy > max_acc and not config.USE_RANDOM_DATASET:

@@ -82,22 +82,25 @@ class HierarchicalClustering(torch.nn.Module):
 
     def forward(self, x):
         batch_size, num_tokens, _ = x.shape
+
+        data = x.reshape(batch_size * num_tokens, -1)
         
         if self.linkage is None:
             clustering = AgglomerativeClustering(n_clusters=self.num_clusters)
-            cluster_assignments = clustering.fit_predict(x.reshape(batch_size * num_tokens, -1).detach().cpu().numpy())
+            cluster_assignments = clustering.fit_predict(data.detach().cpu().numpy())
         else:
             clustering = AgglomerativeClustering(n_clusters=self.num_clusters, linkage=self.linkage)
-            cluster_assignments = clustering.fit_predict(x.reshape(batch_size * num_tokens, -1).detach().cpu().numpy())
+            cluster_assignments = clustering.fit_predict(data.detach().cpu().numpy())
         
+        self.linkage = clustering.children_
+
+
         tensor = torch.zeros(batch_size * num_tokens, self.num_clusters)
         for i in range(batch_size * num_tokens):
             tensor[i, cluster_assignments[i]] = 1
         
         tensor = tensor.reshape(batch_size, num_tokens, self.num_clusters)
         cluster_tensor = tensor.clone().to(device)
-
-        self.linkage = clustering.children_
         
         return cluster_tensor
 
