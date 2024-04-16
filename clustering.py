@@ -105,10 +105,9 @@ class HierarchicalClustering(torch.nn.Module):
         return cluster_tensor
 
     def clear_silhouette_values(self):
-        self.epoch_silhouette_values = []
+        self.epoch_silhouette_values = [10]
     
     def get_avg_silhouette_value(self):
-        return 0
         return sum(self.epoch_silhouette_values) / len(self.epoch_silhouette_values)
 
 
