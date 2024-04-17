@@ -45,9 +45,6 @@ class KMeansClustering(torch.nn.Module):
 
         data = x.reshape(batch_size * num_tokens, -1)
 
-        # print('data shape:', data.shape)
-        # print('nan count:', torch.isnan(data).sum().item())
-
         if self.cluster_centers is None:
             kmeans = KMeans(n_clusters=self.num_clusters, n_init='auto')
         else:
@@ -56,18 +53,24 @@ class KMeansClustering(torch.nn.Module):
         cluster_assignments = kmeans.fit_predict(data.detach().cpu().numpy())
         self.cluster_centers = kmeans.cluster_centers_
 
-        silhouette_val = silhouette_score(data.detach().cpu().numpy(), kmeans.labels_)
-        # print('the kmeans silhouette score:', silhouette_val)
-        self.epoch_silhouette_values.append(silhouette_val)
+        if self.mode == 'valid':
+            silhouette_val = silhouette_score(data.detach().cpu().numpy(), kmeans.labels_)
+            self.epoch_silhouette_values.append(silhouette_val)
 
         cluster_tensor = utils.get_pairwise_inverse_euclidian_distance(data, torch.tensor(self.cluster_centers).to(device)).reshape(batch_size, num_tokens, self.num_clusters)
         return cluster_tensor
 
     def clear_silhouette_values(self):
         self.epoch_silhouette_values = []
+
+    def set_clustering_mode(self, mode):
+        assert mode in ['train', 'valid']
+        self.mode = mode
     
     def get_avg_silhouette_value(self):
-        return sum(self.epoch_silhouette_values) / len(self.epoch_silhouette_values)
+        if self.mode == 'valid':
+            return sum(self.epoch_silhouette_values) / len(self.epoch_silhouette_values)
+        return 10
 
 
 class HierarchicalClustering(torch.nn.Module):

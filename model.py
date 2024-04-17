@@ -82,6 +82,12 @@ class PaCaVIT(torch.nn.Module):
             clustering_model = getattr(self, stage)
             clustering_model.clear_silhouette_values()
 
+    def set_clustering_mode(self, mode):
+        for block_num in range(self.num_blocks):
+            stage = f'clustering_{block_num}'
+            clustering_model = getattr(self, stage)
+            clustering_model.set_clustering_mode(mode)
+
     def get_avg_silhouette_values(self):
         avg_silhouette_values = []
         for block_num in range(self.num_blocks):

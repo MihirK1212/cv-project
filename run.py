@@ -141,6 +141,7 @@ if __name__ == "__main__":
         print()
 
         paca_vit_model.clear_silhouette_values()   
+        paca_vit_model.set_clustering_mode('train')
 
         print("######### Training #########")
         train_loss, accuracy, precision, recall, f1, weighted_f1, micro_f1, macro_f1 = train(
@@ -168,6 +169,7 @@ if __name__ == "__main__":
 
 
         paca_vit_model.clear_silhouette_values()   
+        paca_vit_model.set_clustering_mode('valid')
 
         print("######### Validation #########")
         valid_loss, accuracy, precision, recall, f1, weighted_f1, micro_f1, macro_f1 = valid(
