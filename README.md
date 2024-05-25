@@ -16,6 +16,9 @@ To understand how different clustering techniques are used for different tasks, 
 ![image](https://github.com/MihirK1212/cv-project/assets/79632719/0cac7316-d174-40ea-b5fa-2fe4efbe8e5d)
 
 ## Installation and Training
+* Install required libraries using `pip install -r requirements.txt`
+* The desired configurations for training can be controlled using the variables in `config.py`
+* Train the model by executing the the script `run.py`
 
 ## Contributors
 * Amit Kumar Makkad
